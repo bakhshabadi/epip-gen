@@ -46,14 +46,14 @@ export const SchemaApi = async (apis, schemasPattern: any, fileNames: string[]) 
         let _queryName = "";
         let options = [
             `    method: '${api.method.toUpperCase()}'`,
-            `            url: \`${api.name.replace(/\{/g, '${')}\``,
+            `            url: apiRoute + \`${api.name.replace(/\{/g, '${')}\``,
         ];
         if (_queries.length) {
             _queryName = api.operationId.split("Controller_")[1] + "QueryDtoIn";
             // queries.push(createQuery(_queryName, _queries));
             importsData.push({ key: _queryName, data: [createQuery(_queryName, _queries), []], type: "query" });
             // importsData.push({ key: _queryName, data: SchemaModel(schemasPattern, _queries), type: "query" });
-            params.push('queries: ' + _queryName);
+            params.push('queries: Partial<' + _queryName+">");
             options.push(`            params: queries`);
         }
 
@@ -115,11 +115,11 @@ export const SchemaApi = async (apis, schemasPattern: any, fileNames: string[]) 
 
 
         arr.push(
-            `    public async ${api.operationId.split("Controller_")[1]} (${params.join(", ")})${_output || ' : Promise<any>'} {
+            `    public static async ${api.operationId.split("Controller_")[1]} (${params.join(", ")})${_output || ' : Promise<any>'} {
         const resp = await axios({
         ${options.join(',\n')}
-        }).catch(() => {
-            throw new ForbiddenException('API not available');
+        }).catch((err) => {
+            throw new Error('API not available');
         });
         if (resp.status != 200 && resp.status != 201) {
             console.error(resp.data.message);
@@ -157,8 +157,7 @@ export const SchemaApi = async (apis, schemasPattern: any, fileNames: string[]) 
 
     return (
         `import axios from "axios";
-import { ForbiddenException } from "@nestjs/common";
-import { apiRoute, BaseApiService } from "../../@base/base.service";
+import { apiRoute } from "../../@base/base.service";
 import { IResponse, IResponseAll} from "../../@base/base.dto";
 ${(() => {
             if (importsData.length > 0) {
@@ -168,11 +167,7 @@ ${(() => {
         })()
         }
 
-export class ${className}ServiceApi extends BaseApiService {
-    constructor()    {
-        super(apiRoute + '${toKebabCase(className)}')
-    }
-
+export class ${className}ServiceApi {    
 ${arr.join('\n')}
 
 }`);

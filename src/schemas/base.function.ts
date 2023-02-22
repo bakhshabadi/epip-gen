@@ -10,14 +10,7 @@ export const toPascalCase = (str: string) => {
 }
 
 export const baseService = (route) => (
-    `export const apiRoute: string = "${route.split("/").filter((f, i) => i < 3).join("/") + "/"}";
-
-export class BaseApiService {
-    protected url: string; 
-    constructor (_url: string) {
-        this.url = _url;
-    } 
-}`
+    `export const apiRoute: string = "${route.split("/").filter((f, i) => i < 3).join("/") + "/v1"}";`
 )
 
 export const baseDto = () => (

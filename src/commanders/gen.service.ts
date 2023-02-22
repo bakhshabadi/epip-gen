@@ -73,25 +73,25 @@ export class GenService extends BaseService {
             }
         }
 
-        // let str=indexTs.map(f=>`export * from "${f.replace('./dist/apis/','./')}";`).join("\n");
+        // let str=indexTs.map(f=>`export * from "${f.replace('./apis/','./')}";`).join("\n");
         // console.log(str)
-        // fs.writeFileSync ("./dist/apis/index.ts",str)
+        // fs.writeFileSync ("./apis/index.ts",str)
 
-        if (!(await fs.existsSync(this.output + "/dist/apis/@base"))) {
-            await fs.mkdirSync(this.output + "/dist/apis/@base");
+        if (!(await fs.existsSync(this.output + "/apis/@base"))) {
+            await fs.mkdirSync(this.output + "/apis/@base");
         }
-        await fs.writeFileSync(this.output + "/dist/apis/@base/base.service.ts", baseService(this.swgAddress))
-        await fs.writeFileSync(this.output + "/dist/apis/@base/base.dto.ts", baseDto())
-        await fs.writeFileSync(this.output + "/dist/apis/models.ts", models.join("\n"));
+        await fs.writeFileSync(this.output + "/apis/@base/base.service.ts", baseService(this.swgAddress))
+        await fs.writeFileSync(this.output + "/apis/@base/base.dto.ts", baseDto())
+        await fs.writeFileSync(this.output + "/apis/models.ts", models.join("\n"));
         console.log("your operation is succeed.")
     }
 
     override async   generateApi(path: any): Promise<string> {
-        if (!(await fs.existsSync(this.output + "/dist/apis/"))) {
-            await fs.mkdirSync(this.output + "/dist/apis/");
+        if (!(await fs.existsSync(this.output + "/apis/"))) {
+            await fs.mkdirSync(this.output + "/apis/");
         }
 
-        let route = this.output + "dist/apis/";
+        let route = this.output + "apis/";
         let arr = path[0].tags[0].split("/");
         for (let index = 0; index < arr.length; index++) {
             route += arr[index].trim() + "/";
@@ -106,11 +106,11 @@ export class GenService extends BaseService {
 
     override async generateModels(schema: any) {
         // console.log(schema)
-        // if (!(await fs.existsSync(this.output + "/dist/models/"))) {
-        //     await fs.mkdirSync(this.output + "/dist/models/");
+        // if (!(await fs.existsSync(this.output + "/models/"))) {
+        //     await fs.mkdirSync(this.output + "/models/");
         // }
         // const fileName = toKebabCase(schema.name);
-        // return fs.writeFileSync(this.output + "/dist/models/" + fileName + ".dto.ts", SchemaModel(schema));
+        // return fs.writeFileSync(this.output + "/models/" + fileName + ".dto.ts", SchemaModel(schema));
     }
 
     override async generateEnums(): Promise<void> {
