@@ -1,3 +1,2 @@
-export * from "./gen.model";
-export * from "./gen.service";
-export * from "./gen.command";
+export * from "./vue-gen.command";
+export * from "./ng-gen.command";
