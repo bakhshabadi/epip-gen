@@ -4,6 +4,7 @@ import * as _ from "lodash";
 import { ForbiddenException } from "@nestjs/common";
 import * as fs from "fs";
 import { baseDto, baseService } from "../helpers/base.function";
+import to from "await-to-js";
 
 export class VueGenService extends BaseService {
     // private axios: Axios;
@@ -16,12 +17,13 @@ export class VueGenService extends BaseService {
     private paths: Array<any> = [];
 
     override async run(): Promise<void> {
-        const response = await axios({
+        const [err, response] = await to(axios({
             method: 'GET',
             url: this.swgAddress,
-        }).catch(() => {
+        }));
+        if (err) {
             throw new ForbiddenException('API not available');
-        });
+        }
         if (response.status != 200) {
             throw new Error("http status is " + response.status);
         }
@@ -69,7 +71,7 @@ export class VueGenService extends BaseService {
         if (!(await fs.existsSync(this.output + "/apis/@base"))) {
             await fs.mkdirSync(this.output + "/apis/@base");
         }
-        await fs.writeFileSync(this.output + "/apis/@base/base.service.ts", baseService(this.swgAddress))
+        await fs.writeFileSync(this.output + "/apis/@base/base.service.ts", baseService(this.environment, this.swgAddress))
         await fs.writeFileSync(this.output + "/apis/@base/base.dto.ts", baseDto())
         await fs.writeFileSync(this.output + "/apis/models.ts", models.join("\n"));
         console.log("your operation is succeed.")
@@ -191,7 +193,7 @@ export class VueGenService extends BaseService {
 
 
             arr.push(
-            `    public static async ${api.operationId.split("Controller_")[1]} (${params.join(", ")})${_output || ' : Promise<any>'} {
+                `    public static async ${api.operationId.split("Controller_")[1]} (${params.join(", ")})${_output || ' : Promise<any>'} {
         const resp = await axios({
         ${options.join(',\n')}
         }).catch((err) => {
@@ -232,16 +234,16 @@ export class VueGenService extends BaseService {
         await fs.writeFileSync(fileNames[0] + "index.ts", indexTs.join("\n"))
 
         return (
-        `import axios from "axios";
+            `import axios from "axios";
 import { apiRoute } from "../../@base/base.service";
 import { IResponse, IResponseAll} from "../../@base/base.dto";
 ${(() => {
-            if (importsData.length > 0) {
-                return `import {${arrModels.map(f => f.key).join(', ')}} from "./${fileNames[1]}.dto";`
+                if (importsData.length > 0) {
+                    return `import {${arrModels.map(f => f.key).join(', ')}} from "./${fileNames[1]}.dto";`
+                }
+                return ``
+            })()
             }
-            return ``
-        })()
-        }
 
 export class ${className}ServiceApi {    
 ${arr.join('\n')}

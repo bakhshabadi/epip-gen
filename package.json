@@ -1,10 +1,10 @@
 {
   "name": "epip-gen",
-  "version": "1.1.15",
+  "version": "1.1.20",
   "description": "",
   "author": "",
   "license": "UNLICENSED",
-  "bin": {
+  "bin": { 
     "epip-gen":"main.js"
   },
   "scripts": {

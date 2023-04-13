@@ -27,4 +27,12 @@ export class NgGenCommander implements CommandRunner {
     getSwaggerAddress(swgAddress: string): void {
         this.srv.swgAddress = swgAddress;
     } 
+
+    @Option({
+        flags: '-e, --env [string]',
+        description: 'environment key for baseUrl. defaule url is swagger\'s route',
+    })
+    getEnvironment(env: string): void {
+        this.srv.environment = env;
+    } 
 }

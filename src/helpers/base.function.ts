@@ -9,12 +9,17 @@ export const toPascalCase = (str: string) => {
     });
 }
 
-export const baseService = (route) => (
-    `export const apiRoute: string = "${route.split("/").filter((f, i) => i < 3).join("/") + "/v1"}";`
-)
+export const baseService = (env: string, route) => {
+    if(env){
+        return `export const apiRoute = process.env.${env};`;
+    }else{
+        return `export const apiRoute = "${(route.split("/").filter((f, i) => i < 3).join("/") + "/v1")}";`;
+    }
+    
+}
 
 export const baseDto = () => (
-`export interface IResponse<T>{
+    `export interface IResponse<T>{
     status: number,
     message: string,
     result: T

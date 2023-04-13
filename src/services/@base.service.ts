@@ -3,6 +3,7 @@ import * as _ from "lodash";
 
 
 export class BaseService implements IFramework {
+    public environment: string;
     public output: string;
     public swgAddress: string;
 

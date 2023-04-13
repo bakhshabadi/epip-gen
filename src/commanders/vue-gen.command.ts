@@ -1,6 +1,4 @@
-import { Injectable } from "@nestjs/common";
 import { Command, CommandRunner, Option } from "nest-commander";
-import { FrameworkType } from "../models/gen.model";
 import { VueGenService } from "../services/vue-gen.service";
 
 @Command({ name: 'vue', description: 'fetch api schema for vuejs' })
@@ -12,17 +10,6 @@ export class VueGenCommander implements CommandRunner {
     ): Promise<void> {
         await this.srv.run();
     }
-
-    // @Option({
-    //     flags: '-t, --type [string]',
-    //     description: '\n\tng: angular(master of the framework)\n\tvue:vueJs(shit framework)\n\treact(worst framework)',
-    // })
-    // getType(type: string): void {
-    //     this.srv.type = type as FrameworkType;
-    //     if (!Object.values(FrameworkType).includes(type as FrameworkType)) {
-    //         console.error("not support your framework");
-    //     }
-    // }
 
     @Option({
         flags: '-o, --output [string]',
@@ -38,5 +25,13 @@ export class VueGenCommander implements CommandRunner {
     })
     getSwaggerAddress(swgAddress: string): void {
         this.srv.swgAddress = swgAddress;
+    } 
+
+    @Option({
+        flags: '-e, --env [string]',
+        description: 'environment key for baseUrl. defaule url is swagger\'s route',
+    })
+    getEnvironment(env: string): void {
+        this.srv.environment = env;
     } 
 }
