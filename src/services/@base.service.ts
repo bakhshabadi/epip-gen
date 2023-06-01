@@ -76,7 +76,7 @@ export class BaseService implements IFramework {
             if (Object.prototype.hasOwnProperty.call(schema.properties, key)) {
                 const element = schema.properties[key];
                 const res = this.createType(pattern, schema.name + element.name, element);
-                props.push(`public ${key}: ${res[0]};`);
+                props.push(`public ${key}: ${res[0]},`);
                 if (res[1]) {
                     imports.push(res[1]);
                 }
@@ -87,7 +87,9 @@ export class BaseService implements IFramework {
 
         return ([
             `export class ${schema.name}${["IResponseAll", "IResponse"].includes(schema.name) ? "<T>" : ""} {
-    ${props.join('\n\t')}${schema.name == "IResponseAll" ? "\n\tpublic results: T[]" : ""}${schema.name == "IResponse" ? "\n\tpublic result: T" : ""}
+    constructor(
+        ${props.join('\n\t\t')}${schema.name == "IResponseAll" ? "\n\tpublic results: T[]" : ""}${schema.name == "IResponse" ? "\n\tpublic result: T" : ""}
+    ) { }
 }`, imports]);
     }
 
@@ -105,7 +107,9 @@ export class BaseService implements IFramework {
         }
         return (
         `export class ${name} {
-${data.map(f => `    ${f.name}: ${checkArray(f)};`).join("\n")}
+    constructor(
+${data.map(f => `    ${f.name}: ${checkArray(f)},`).join("\n")}
+    ){}
 }`
         )
     }

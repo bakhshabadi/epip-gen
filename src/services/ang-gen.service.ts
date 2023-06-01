@@ -194,7 +194,7 @@ export class NgGenService extends BaseService {
                 `    public static async ${api.operationId.split("Controller_")[1]} (${params.join(", ")})${_output || ' : Promise<any>'} {
         const resp = await axios({
         ${options.join(',\n')}
-        }).catch((err) => {
+        }).catch((err:any) => {
             throw new Error('API not available');
         });
         if (resp.status != 200 && resp.status != 201) {
