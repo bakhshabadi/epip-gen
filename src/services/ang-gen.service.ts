@@ -4,7 +4,7 @@ import * as _ from "lodash";
 import { ForbiddenException } from "@nestjs/common";
 import * as fs from "fs";
 import { baseDto, baseService } from "../helpers/base.function";
-
+import { snakeCase } from "snake-case";
 export class NgGenService extends BaseService {
     // private axios: Axios;
     constructor() {
@@ -226,7 +226,7 @@ export class NgGenService extends BaseService {
         indexTs.push(`export * from "./${fileNames[1] + ".service"}";`)
         if (arrModels.length) {
             indexTs.push(`export * from "./${fileNames[1] + ".dto"}";`)
-            await fs.writeFileSync(fileNames[0] + (fileNames[1]) + ".dto.ts", data)
+            await fs.writeFileSync(snakeCase(fileNames[0] + (fileNames[1])) + ".dto.ts", data)
         }
 
         await fs.writeFileSync(fileNames[0] + "index.ts", indexTs.join("\n"))
