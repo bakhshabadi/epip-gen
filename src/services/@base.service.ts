@@ -10,7 +10,7 @@ export class BaseService implements IFramework {
   run(): Promise<void> {
     throw new Error("Method not implemented.");
   }
-  generateApi(paths: any): Promise<string> {
+  generateApi(paths: any, project:string): Promise<string> {
     throw new Error("Method not implemented.");
   }
   generateEnums(): Promise<void> {

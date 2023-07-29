@@ -19,77 +19,91 @@ export class ReactGenService extends BaseService {
     private paths: Array<any> = [];
 
     override async run(): Promise<void> {
-        const [err, response] = await to(axios({
-            method: 'GET',
-            url: this.swgAddress,
-        }));
-        if (err) {
-            throw new ForbiddenException('API not available');
-        }
-        if (response.status != 200) {
-            throw new Error("http status is " + response.status);
-        }
+        const arrSwagger = this.swgAddress.split(",");
+        for (let i = 0; i < arrSwagger.length; i++) {
+            const swagger = arrSwagger[i];
+            
+            const [err, response] = await to(axios({
+                method: 'GET',
+                url: swagger,
+            }));
+            if (err) {
+                throw new ForbiddenException('API not available');
+            }
+            if (response.status != 200) {
+                throw new Error("http status is " + response.status);
+            }
 
-        this.schemas = _(response.data.definitions).map((f, k) => {
-            f.name = k;
-            return f;
-        }).value();
+            const project= "/"+swagger.split("://")[1].split(".")[0];
+            if (!(await fs.existsSync(this.output + project))) {
+                await fs.mkdirSync(this.output + project);
+            }
 
-        this.paths = [];
-        for (const key in response.data.paths) {
-            if (Object.prototype.hasOwnProperty.call(response.data.paths, key)) {
-                const element = response.data.paths[key];
-                for (const key1 in element) {
-                    if (Object.prototype.hasOwnProperty.call(element, key1)) {
-                        const api = element[key1];
-                        api.name = key;
-                        api.method = key1;
-                        this.paths.push(api)
+    
+            this.schemas = _(response.data.definitions).map((f, k) => {
+                f.name = k;
+                return f;
+            }).value();
+    
+            this.paths = [];
+            for (const key in response.data.paths) {
+                if (Object.prototype.hasOwnProperty.call(response.data.paths, key)) {
+                    const element = response.data.paths[key];
+                    for (const key1 in element) {
+                        if (Object.prototype.hasOwnProperty.call(element, key1)) {
+                            const api = element[key1];
+                            api.name = key;
+                            api.method = key1;
+                            this.paths.push(api)
+                        }
                     }
                 }
             }
-        }
-
-        let models = [];
-
-        for (let i = 0; i < this.schemas.length; i++) {
-            const element = this.schemas[i];
-            this.schemasPattern[element.name] = element;
-            models.push(this.SchemaModel(this.schemasPattern, element.name)[0]);
-        }
-
-        
-
-        const arr = _(this.paths).groupBy(f => f.tags[0]).value()
-        let indexTs = [];
-        for (const key in arr) {
-            if (Object.prototype.hasOwnProperty.call(arr, key)) {
-                const element = arr[key];
-                let str = await this.generateApi(element).catch(err => {
-                    throw new Error('Error: ' + err)
-                });
-                indexTs.push(str)
+    
+            let models = [];
+    
+            for (let i = 0; i < this.schemas.length; i++) {
+                const element = this.schemas[i];
+                this.schemasPattern[element.name] = element;
+                models.push(this.SchemaModel(this.schemasPattern, element.name)[0]);
             }
-        }
+    
+    
+            const arr = _(this.paths).groupBy(f => f.tags[0]).value()
+            let indexTs = [];
+            for (const key in arr) {
+                if (Object.prototype.hasOwnProperty.call(arr, key)) {
+                    const element = arr[key];
+                    let str = await this.generateApi(element,project).catch(err => {
+                        throw new Error('Error: ' + err)
+                    });
+                    indexTs.push(str)
+                }
+            }
 
-        if (!(await fs.existsSync(this.output + "/apis/@base"))) {
-            await fs.mkdirSync(this.output + "/apis/@base");
+           
+    
+            if (!(await fs.existsSync(this.output + project + "/apis/@base"))) {
+                await fs.mkdirSync(this.output + project + "/apis/@base");
+            }
+            
+            await fs.writeFileSync(this.output + project +  "/models.ts", models.join("\n"));
+            
+            await fs.writeFileSync(this.output + project + "/apis/@base/base.service.ts", baseService(this.environment, swagger))
+            await fs.writeFileSync(this.output + project + "/apis/@base/base.dto.ts", baseDto())
+            
         }
         
-        await fs.writeFileSync(this.output + "/models.ts", models.join("\n"));
-        
-        await fs.writeFileSync(this.output + "/apis/@base/base.service.ts", baseService(this.environment, this.swgAddress))
-        await fs.writeFileSync(this.output + "/apis/@base/base.dto.ts", baseDto())
         
         console.log("your operation is succeed.")
     }
 
-    override async generateApi(path: any): Promise<string> {
-        if (!(await fs.existsSync(this.output + "/apis/"))) {
-            await fs.mkdirSync(this.output + "/apis/");
+    override async generateApi(path: any, project:string): Promise<string> {
+        if (!(await fs.existsSync(this.output + project + "/apis/"))) {
+            await fs.mkdirSync(this.output + project + "/apis/");
         }
 
-        let route = this.output + "/apis/";
+        let route = this.output + project + "/apis/";
         let arr = path[0].tags[0].split("/");
         for (let index = 0; index < arr.length; index++) {
             route += snakeCase(arr[index].trim()) + "/";
@@ -183,9 +197,11 @@ export class ReactGenService extends BaseService {
                 output = _output.join(' | ')
             }
             arr.push(
-                `    public static ${api.operationId.split("_")[1]} (${params.join(", ")})${` : Promise<${output}>`} {
+                `    public static ${api.operationId.split("_")[1]} (${params.join(", ")} ${params.length?', ':''}headers: { [k: string]: string } = {})${` : Promise<${output}>`} {
         return axios({
-        ${options.join(',\n')}
+        ${options.join(',\n')}${options.length?',':''}
+            headers
+
         })
         
     }`
