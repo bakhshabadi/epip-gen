@@ -132,7 +132,7 @@ export class ReactGenService extends BaseService {
         for (let index = 0; index < apis.length; index++) {
             const api = apis[index];
             if (!className) {
-                className = api.operationId.split("_")[0];
+                className = api.operationId.split("_")[0]+fileNames[1];
             }
 
             let params = [];
@@ -193,16 +193,31 @@ export class ReactGenService extends BaseService {
             }).value();
 
             let output = "any";
+            let axiosOutput = "any";
             if(_output?.length){
                 output = _output.join(' | ')
+                axiosOutput = _output[0]
             }
             arr.push(
-                `    public static ${api.operationId.split("_")[1]} (${params.join(", ")} ${params.length?', ':''}headers: { [k: string]: string } = {})${` : Promise<${output}>`} {
-        return axios({
-        ${options.join(',\n')}${options.length?',':''}
-            headers
+                `    public static async ${api.operationId.split("_")[1]} (${params.join(", ")} ${params.length?', ':''}headers: { [k: string]: string } = {})${` : Promise<${axiosOutput}>`} {
+        const [err, resp] = await to(
+            axios<${axiosOutput}, any>({
+                ${options.join(',\n')}${options.length?',':''}
+                headers
 
-        })
+            })
+        );
+        if (err) {
+            if (err?.message) {
+              toast.error(err.message);
+            }
+            return new Promise((_, reject) => {
+              reject((err as any)?.response?.data || err?.message || "error...");
+            });
+        }
+        return new Promise((resolve, _) => {
+            resolve(resp.data);
+        });
         
     }`
             )
@@ -248,6 +263,8 @@ ${(() => {
                 return ``
             })()
             }
+import to from "await-to-js";
+import { toast } from "react-toastify";
 
 export class ${className}ServiceApi {    
 ${arr.join('\n')}

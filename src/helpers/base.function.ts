@@ -13,7 +13,7 @@ export const baseService = (env: string, route) => {
     if(env){
         return `export const apiRoute = process.env.${env};`;
     }else{
-        return `export const apiRoute = "${(route.split("/").filter((f, i) => i < 3).join("/") + "/v1")}";`;
+        return `export const apiRoute = "${(route.split("/").filter((f, i) => i < 3).join("/"))}";`;
     }
     
 }
