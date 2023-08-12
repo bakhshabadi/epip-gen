@@ -1,6 +1,6 @@
 {
   "name": "epip-gen",
-  "version": "1.2.18",
+  "version": "1.2.19",
   "description": "",
   "author": "",
   "license": "UNLICENSED",
@@ -10,7 +10,7 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "up-version": "npm version patch --force",
-    "publish": "npm publish --registry http://5.161.193.73:4873/",
+    "publish-app": "npm publish --registry http://5.161.193.73:4873/",
     "build-app": "npm run up-version && rmdir /q /s dist && tsc -p ./tsconfig.json && copy package.json dist\\package.json",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
