@@ -13,7 +13,14 @@ export const baseService = (env: string, route) => {
     if(env){
         return `export const apiRoute = process.env.${env};`;
     }else{
-        return `export const apiRoute = "${(route.split("/").filter((f, i) => i < 3).join("/"))}";`;
+        return `
+export const apiRoute = "${(route.split("/").filter((f, i) => i < 3).join("/"))}";
+export const initializeAxios = () => {
+    // axios.defaults.baseURL = apiRoute;    
+    // axios.interceptors.request.use(onRequest);
+    // axios.interceptors.response.use(onResponse, onResponseError);
+};
+`;
     }
     
 }

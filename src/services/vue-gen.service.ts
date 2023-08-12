@@ -33,7 +33,7 @@ export class VueGenService extends BaseService {
                 throw new Error("http status is " + response.status);
             }
 
-            const project = "/" + swagger.split("://")[1].split("/")[0];
+            const project = "/" + swagger.split("://")[1].split("/")[0].replace(":","");
             if (!(await fs.existsSync(this.output + project))) {
                 await fs.mkdirSync(this.output + project);
             }
@@ -137,7 +137,7 @@ export class VueGenService extends BaseService {
             if (api.parameters) {
                 params = api.parameters.filter(f => f.in == "path");
                 params = params.map(f => {
-                    return `${f.name}: ${f.type || "any"}`
+                    return `${f.name}: ${f.schema.type || "any"}`
                 });
                 _queries = api.parameters.filter(f => f.in == "query");
             }
@@ -193,16 +193,29 @@ export class VueGenService extends BaseService {
                     if (http.content["application/json"].schema.allOf) {
                         _output = http.content["application/json"].schema.allOf
                         let prop1 = _output[0].$ref.split("/").reverse()[0];
-                        let prop2 = _output[1].properties[prop1 == "IResponseAll" ? 'results' : 'result'].items.$ref.split("/").reverse()[0]
-                        _output = ` :Promise<${prop1}<${prop2}>>`;
+                        let prop2 = '';
+                        if(prop1 == "IResponseAll"){
+                            prop2=_output[1].properties.results.items.$ref.split("/").reverse()[0];
+                        }else{
+                            if(_output[1].properties.result.$ref){
+                                prop2=_output[1].properties.result.$ref?.split("/")?.reverse()[0];
+                            }else{
+                                prop2=_output[1].properties.result.type;
+                            }
+                        }
+                        _output = ` :Promise<${prop1}<${prop2 || 'void'}>>`;
                         if (schemasPattern[prop2]) {
                             importsData.push({ key: prop2, data: this.SchemaModel(schemasPattern, prop2), type: "output" })
-                        } else if(prop2.trim()!="String") {
+                        } else if(prop2?.trim().toLowerCase()!="string") {
                             console.log(prop2 + " is not in swagger - "+`${api.name.replace(/\{/g, '${')}`)
                         }
                     } else if (http.content["application/json"].schema.$ref) {
                         _output = http.content["application/json"].schema;
                         let prop1 = _output.$ref.split("/").reverse()[0];
+                        if(prop1=='IResponse'){
+                            _output = ':Promise<IResponse<void>>';
+                            return
+                        }
                         _output = ` :Promise<${prop1}>`;
                         if (schemasPattern[prop1]) {
                             importsModelsData.push(prop1);
@@ -215,23 +228,11 @@ export class VueGenService extends BaseService {
             }).value(); 
 
             arr.push(
-                `    public static async ${api.operationId.split("Controller_")[1]} (${params.join(", ")})${_output || ' : Promise<any>'} {
-        const resp = await axios({
+                `    public static ${api.operationId.split("Controller_")[1]} (${params.join(", ")})${_output || ' : Promise<any>'} {
+        return axios({
         ${options.join(',\n')}
-        }).catch((err:any) => {
-            throw new Error('API not available');
-        });
-        if (resp.status != 200 && resp.status != 201) {
-            console.error(resp.data.message);
-            throw new Error("http status is " + resp.status);
-        }
-
-        if(![200,201].includes(resp.data.status)){
-            console.warn(resp.data.message);
-            throw new Error(resp.data.message);
-        }
-
-        return resp.data;
+        })
+        
     }`
             )
         }
@@ -266,7 +267,7 @@ ${(()=>{
 })()}import { IResponse, IResponseAll} from "../../@base/base.dto";
 ${(() => {
                 if (importsData.length > 0) {
-                    return `import {${arrModels.map(f => f.key).join(', ')}} from "./${fileNames[1] + ".dto"}";`
+                    return `import {${arrModels.filter(f=>!importsModelsData.includes(f.key)).map(f => f.key).join(', ')}} from "./${fileNames[1] + ".dto"}";`
                 }
                 return ``
             })()
