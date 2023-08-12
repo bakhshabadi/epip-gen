@@ -18,72 +18,87 @@ export class VueGenService extends BaseService {
     private paths: Array<any> = [];
 
     override async run(): Promise<void> {
-        const [err, response] = await to(axios({
-            method: 'GET',
-            url: this.swgAddress,
-        }));
-        if (err) {
-            throw new ForbiddenException('API not available');
-        }
-        if (response.status != 200) {
-            throw new Error("http status is " + response.status);
-        }
+        const arrSwagger = this.swgAddress.split(",");
+        for (let i = 0; i < arrSwagger.length; i++) {
+            const swagger = arrSwagger[i];
 
-        this.schemas = _(response.data.components.schemas).map((f, k) => {
-            f.name = k;
-            return f;
-        }).value();
+            const [err, response] = await to(axios({
+                method: 'GET',
+                url: swagger,
+            }));
+            if (err) {
+                throw new ForbiddenException('API not available');
+            }
+            if (response.status != 200) {
+                throw new Error("http status is " + response.status);
+            }
 
-        this.paths = [];
-        for (const key in response.data.paths) {
-            if (Object.prototype.hasOwnProperty.call(response.data.paths, key)) {
-                const element = response.data.paths[key];
-                for (const key1 in element) {
-                    if (Object.prototype.hasOwnProperty.call(element, key1)) {
-                        const api = element[key1];
-                        api.name = key;
-                        api.method = key1;
-                        this.paths.push(api)
+            const project = "/" + swagger.split("://")[1].split("/")[0];
+            if (!(await fs.existsSync(this.output + project))) {
+                await fs.mkdirSync(this.output + project);
+            }
+
+
+            this.schemas = _(response.data.components.schemas).map((f, k) => {
+                f.name = k;
+                return f;
+            }).value();
+
+            this.paths = [];
+            for (const key in response.data.paths) {
+                if (Object.prototype.hasOwnProperty.call(response.data.paths, key)) {
+                    const element = response.data.paths[key];
+                    for (const key1 in element) {
+                        if (Object.prototype.hasOwnProperty.call(element, key1)) {
+                            const api = element[key1];
+                            api.name = key;
+                            api.method = key1;
+                            this.paths.push(api)
+                        }
                     }
                 }
             }
-        }
 
-        let models = [];
 
-        for (let i = 0; i < this.schemas.length; i++) {
-            const element = this.schemas[i];
-            this.schemasPattern[element.name] = element;
-            models.push(this.SchemaModel(this.schemasPattern, element.name)[0]);
-        }
+            let models = [];
 
-        const arr = _(this.paths).groupBy(f => f.tags[0]).value()
-        let indexTs = [];
-        for (const key in arr) {
-            if (Object.prototype.hasOwnProperty.call(arr, key)) {
-                const element = arr[key];
-                let str = await this.generateApi(element).catch(err => {
-                    throw new Error('Error: ' + err)
-                });
-                indexTs.push(str)
+
+            for (let i = 0; i < this.schemas.length; i++) {
+                const element = this.schemas[i];
+                this.schemasPattern[element.name] = element;
+                models.push(this.SchemaModel(this.schemasPattern, element.name)[0]);
             }
+
+            const arr = _(this.paths).groupBy(f => f.tags[0]).value()
+            let indexTs = [];
+            for (const key in arr) {
+                if (Object.prototype.hasOwnProperty.call(arr, key)) {
+                    const element = arr[key];
+                    let str = await this.generateApi(element, project).catch(err => {
+                        throw new Error('Error: ' + err)
+                    });
+                    indexTs.push(str)
+                }
+            }
+
+            if (!(await fs.existsSync(this.output + project + "/apis/@base"))) {
+                await fs.mkdirSync(this.output + project + "/apis/@base");
+            }
+
+            await fs.writeFileSync(this.output + project + "/models.ts", models.join("\n"));
+            await fs.writeFileSync(this.output + project + "/apis/@base/base.service.ts", baseService(this.environment, swagger))
+            await fs.writeFileSync(this.output + project + "/apis/@base/base.dto.ts", baseDto())
         }
 
-        if (!(await fs.existsSync(this.output + "/apis/@base"))) {
-            await fs.mkdirSync(this.output + "/apis/@base");
-        }
-        await fs.writeFileSync(this.output + "/apis/@base/base.service.ts", baseService(this.environment, this.swgAddress))
-        await fs.writeFileSync(this.output + "/apis/@base/base.dto.ts", baseDto())
-        await fs.writeFileSync(this.output + "/apis/models.ts", models.join("\n"));
         console.log("your operation is succeed.")
     }
 
-    override async generateApi(path: any): Promise<string> {
-        if (!(await fs.existsSync(this.output + "/apis/"))) {
-            await fs.mkdirSync(this.output + "/apis/");
+    override async generateApi(path: any, project: string): Promise<string> {
+        if (!(await fs.existsSync(this.output + project + "/apis/"))) {
+            await fs.mkdirSync(this.output + project + "/apis/");
         }
 
-        let route = this.output + "apis/";
+        let route = this.output + project + "/apis/";
         let arr = path[0].tags[0].split("/");
         for (let index = 0; index < arr.length; index++) {
             route += arr[index].trim() + "/";
@@ -108,6 +123,7 @@ export class VueGenService extends BaseService {
         let className = "";
         let arr = [];
         let importsData = [];
+        let importsModelsData = [];
         for (let index = 0; index < apis.length; index++) {
             const api = apis[index];
             if (!className) {
@@ -116,9 +132,13 @@ export class VueGenService extends BaseService {
 
             let params = [];
             let _queries = [];
+            
+
             if (api.parameters) {
                 params = api.parameters.filter(f => f.in == "path");
-                params = params.map(f => `${f.name}: ${f.schema.type || "number"}`)
+                params = params.map(f => {
+                    return `${f.name}: ${f.type || "any"}`
+                });
                 _queries = api.parameters.filter(f => f.in == "query");
             }
 
@@ -157,9 +177,10 @@ export class VueGenService extends BaseService {
                     options.push('            data: data ');
                     // imports.push(`import { ${model} } from "./${fileNames[1]}.dto";`)
                     if (schemasPattern[model]) {
-                        importsData.push({ key: model, data: this.SchemaModel(schemasPattern, model), type: "body" });
-                    } else {
-                        console.log(model + " is not in swagger")
+                        importsModelsData.push(model);
+                        // importsData.push({ key: model, data: this.SchemaModel(schemasPattern, model), type: "body" });
+                    } else if(model.trim()!="String") {
+                        console.log(model + " is not in swagger - "+`${api.name.replace(/\{/g, '${')}`)
                     }
                 }
             }
@@ -176,22 +197,22 @@ export class VueGenService extends BaseService {
                         _output = ` :Promise<${prop1}<${prop2}>>`;
                         if (schemasPattern[prop2]) {
                             importsData.push({ key: prop2, data: this.SchemaModel(schemasPattern, prop2), type: "output" })
-                        } else {
-                            console.log(prop2 + " is not in swagger")
+                        } else if(prop2.trim()!="String") {
+                            console.log(prop2 + " is not in swagger - "+`${api.name.replace(/\{/g, '${')}`)
                         }
                     } else if (http.content["application/json"].schema.$ref) {
                         _output = http.content["application/json"].schema;
                         let prop1 = _output.$ref.split("/").reverse()[0];
                         _output = ` :Promise<${prop1}>`;
                         if (schemasPattern[prop1]) {
-                            importsData.push({ key: prop1, data: this.SchemaModel(schemasPattern, prop1), type: "output" })
-                        } else {
-                            console.log(prop1 + " is not in swagger")
+                            importsModelsData.push(prop1);
+                            // importsData.push({ key: prop1, data: this.SchemaModel(schemasPattern, prop1), type: "output" })
+                        } else if(prop1.trim()!="String") {
+                            console.log(prop1 + " is not in swagger"+`${api.name.replace(/\{/g, '${')}`)
                         }
                     }
                 }
-            }).value();
-
+            }).value(); 
 
             arr.push(
                 `    public static async ${api.operationId.split("Controller_")[1]} (${params.join(", ")})${_output || ' : Promise<any>'} {
@@ -229,7 +250,7 @@ export class VueGenService extends BaseService {
         indexTs.push(`export * from "./${fileNames[1] + ".service"}";`)
         if (arrModels.length) {
             indexTs.push(`export * from "./${fileNames[1] + ".dto"}";`)
-            await fs.writeFileSync(snakeCase(fileNames[0] + (fileNames[1])) + ".dto.ts", data)
+            await fs.writeFileSync(fileNames[0] + snakeCase(fileNames[1]) + ".dto.ts", data)
         }
 
         await fs.writeFileSync(fileNames[0] + "index.ts", indexTs.join("\n"))
@@ -237,10 +258,15 @@ export class VueGenService extends BaseService {
         return (
             `import axios from "axios";
 import { apiRoute } from "../../@base/base.service";
-import { IResponse, IResponseAll} from "../../@base/base.dto";
+${(()=>{
+    if(importsModelsData.length){
+       return `import {${_(importsModelsData).uniq().join()}} from "../../../models";\n`
+    }
+    return "";
+})()}import { IResponse, IResponseAll} from "../../@base/base.dto";
 ${(() => {
                 if (importsData.length > 0) {
-                    return `import {${arrModels.map(f => f.key).join(', ')}} from "./${fileNames[1]}.dto";`
+                    return `import {${arrModels.map(f => f.key).join(', ')}} from "./${fileNames[1] + ".dto"}";`
                 }
                 return ``
             })()

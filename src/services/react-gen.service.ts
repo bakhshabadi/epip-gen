@@ -88,7 +88,6 @@ export class ReactGenService extends BaseService {
             }
             
             await fs.writeFileSync(this.output + project +  "/models.ts", models.join("\n"));
-            
             await fs.writeFileSync(this.output + project + "/apis/@base/base.service.ts", baseService(this.environment, swagger))
             await fs.writeFileSync(this.output + project + "/apis/@base/base.dto.ts", baseDto())
             

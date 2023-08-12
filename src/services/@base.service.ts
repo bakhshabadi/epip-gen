@@ -42,15 +42,17 @@ export class BaseService implements IFramework {
       let entityName = prop.$ref.split("/").reverse()[0];
       return [
         entityName + (isArray ? "[]" : ""),
-        `import { ${entityName} } from "../../models";`,
+        `import { ${entityName} } from "../../../models";`,
       ];
     }
 
     switch (prop.type) {
       case "integer":
         return ["number"];
-      case "number":
-      case "boolean":
+        case "number":
+        return ["number"];
+        case "boolean":
+        return ["boolean"];
       case "string":
         return [prop.type + (isArray ? "[]" : "")];
       case "object":
@@ -119,7 +121,7 @@ ${schema.enum.map((f) => `    ${f}="${f}"`).join(",\n")}
         } else if (f.type == "integer") {
           return "number";
         } else {
-          return f.type;
+          return f.schema.type;
         }
       } catch (err) {
         console.error(f);
