@@ -1,12 +1,12 @@
 {
   "name": "epip-generate",
-  "version": "1.2.26",
+  "version": "1.2.27",
   "description": "",
   "author": "",
   "license": "UNLICENSED",
   "main": "./src/main.js",
   "bin": {
-    "epip-gen": "./src/main.js"
+    "epip-generate": "./src/main.js"
   },
   "preferGlobal": true,
   "scripts": {
