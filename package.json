@@ -1,6 +1,6 @@
 {
   "name": "epip-gen",
-  "version": "1.2.19",
+  "version": "1.2.20",
   "description": "",
   "author": "",
   "license": "UNLICENSED",
@@ -16,7 +16,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "gen:help": "nest build & node dist\\main.js gen --help",
     "start": "rimraf dist & npm run build & node dist\\main.js gen -t vue -o ./ -h http://localhost:8585/api/v1/swagger.json",
-    "start:dev": "ts-node src/main.ts vue -o ./dist -h http://localhost:8585/v1/api/swagger.json",
+    "start:dev": "ts-node src/main.ts vue -o ./dist -h https://api.test.hemscap.com/v1/api/swagger.json",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
