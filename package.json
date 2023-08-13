@@ -1,12 +1,14 @@
 {
-  "name": "epip-gen",
-  "version": "1.2.21",
+  "name": "epip-generate",
+  "version": "1.2.26",
   "description": "",
   "author": "",
   "license": "UNLICENSED",
+  "main": "./src/main.js",
   "bin": {
-    "epip-gen": "main.js"
+    "epip-gen": "./src/main.js"
   },
+  "preferGlobal": true,
   "scripts": {
     "prebuild": "rimraf dist",
     "up-version": "npm version patch --force",
