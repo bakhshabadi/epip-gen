@@ -10,10 +10,10 @@ import * as Services from '../services';
   providers: [
     Commanders.NgGenCommander,
     Commanders.VueGenCommander,
-    Commanders.ReactGenCommander,
+    // Commanders.ReactGenCommander,
     Services.NgGenService,
     Services.VueGenService,
-    Services.ReactGenService,
+    // Services.ReactGenService,
   ],
 })
 export class AppModule {}

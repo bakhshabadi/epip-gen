@@ -34,4 +34,13 @@ export class VueGenCommander implements CommandRunner {
     getEnvironment(env: string): void {
         this.srv.environment = env;
     } 
+
+    @Option({
+        flags: '-v, --version',
+        description: 'app version',
+    })
+    getVersion(): void {
+        console.log(process.version)
+        process.exit()
+    } 
 }
