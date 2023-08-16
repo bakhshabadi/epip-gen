@@ -9,20 +9,33 @@ export const toPascalCase = (str: string) => {
     });
 }
 
-export const baseService = (env: string, route) => {
-    if(env){
-        return `export const apiRoute = process.env.${env};`;
-    }else{
+function getUrl(route: string, env: string) {
+    if (env) {
+        return `import.meta.${env}`
+    } else {
+        return (route.split("/").filter((f, i) => i < 3).join("/"))
+    }
+}
+
+export const baseService = (env: string, route: string, interceptorPath: string) => {
+    if (env) {
+        return `export const apiRoute = import.meta.${env};`;
+    } else {
         return `
-export const apiRoute = "${(route.split("/").filter((f, i) => i < 3).join("/"))}";
-export const initializeAxios = () => {
-    // axios.defaults.baseURL = apiRoute;    
-    // axios.interceptors.request.use(onRequest);
-    // axios.interceptors.response.use(onResponse, onResponseError);
-};
+import axios from "axios";
+import { onRequest, onResponse } from "${interceptorPath || 'please set -in for interceptor path'}";
+    
+const axiosInstance = axios.create({
+    baseURL: "${getUrl(route, env)}" 
+});
+
+axiosInstance.interceptors.request.use(onRequest);
+axiosInstance.interceptors.response.use(onResponse);
+
+export default axiosInstance;
 `;
     }
-    
+
 }
 
 export const baseDto = () => (

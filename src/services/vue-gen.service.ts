@@ -5,13 +5,10 @@ import { ForbiddenException } from "@nestjs/common";
 import * as fs from "fs";
 import { baseDto, baseService } from "../helpers/base.function";
 import to from "await-to-js";
-import { snakeCase } from "snake-case";
 
 export class VueGenService extends BaseService {
-    // private axios: Axios;
     constructor() {
         super();
-        // this.axios = new Axios();
     }
     private schemas: Array<any> = [];
     private schemasPattern: any = {};
@@ -33,7 +30,8 @@ export class VueGenService extends BaseService {
                 throw new Error("http status is " + response.status);
             }
 
-            const project = "/" + swagger.split("://")[1].split("/")[0].replace(":","");
+            // const project = "/" + swagger.split("://")[1].split("/")[0].split(".").reverse()[1].replace(":", "")+"";
+            const project = "/services";
             if (!(await fs.existsSync(this.output + project))) {
                 await fs.mkdirSync(this.output + project);
             }
@@ -86,7 +84,7 @@ export class VueGenService extends BaseService {
             }
 
             await fs.writeFileSync(this.output + project + "/models.ts", models.join("\n"));
-            await fs.writeFileSync(this.output + project + "/apis/@base/base.service.ts", baseService(this.environment, swagger))
+            await fs.writeFileSync(this.output + project + "/apis/@base/base.service.ts", baseService(this.environment, swagger, this.interceptorPath))
             await fs.writeFileSync(this.output + project + "/apis/@base/base.dto.ts", baseDto())
         }
 
@@ -120,6 +118,7 @@ export class VueGenService extends BaseService {
     }
 
     private async SchemaApi(apis, schemasPattern: any, fileNames: string[]) {
+        const nameApi = fileNames.join('');
         let className = "";
         let arr = [];
         let importsData = [];
@@ -132,7 +131,7 @@ export class VueGenService extends BaseService {
 
             let params = [];
             let _queries = [];
-            
+
 
             if (api.parameters) {
                 params = api.parameters.filter(f => f.in == "path");
@@ -145,7 +144,7 @@ export class VueGenService extends BaseService {
             let _queryName = "";
             let options = [
                 `    method: '${api.method.toUpperCase()}'`,
-                `            url: apiRoute + \`${api.name.replace(/\{/g, '${')}\``,
+                `            url: \`${api.name.replace(/\{/g, '${')}\``,
             ];
             if (_queries.length) {
                 _queryName = api.operationId.split("Controller_")[1] + "QueryDtoIn";
@@ -179,8 +178,8 @@ export class VueGenService extends BaseService {
                     if (schemasPattern[model]) {
                         importsModelsData.push(model);
                         // importsData.push({ key: model, data: this.SchemaModel(schemasPattern, model), type: "body" });
-                    } else if(model.trim()!="String") {
-                        console.log(model + " is not in swagger - "+`${api.name.replace(/\{/g, '${')}`)
+                    } else if (model.trim() != "String") {
+                        console.log(model + " is not in swagger - " + `${api.name.replace(/\{/g, '${')}`)
                     }
                 }
             }
@@ -194,42 +193,42 @@ export class VueGenService extends BaseService {
                         _output = http.content["application/json"].schema.allOf
                         let prop1 = _output[0].$ref.split("/").reverse()[0];
                         let prop2 = '';
-                        if(prop1 == "IResponseAll"){
-                            prop2=_output[1].properties.results.items.$ref.split("/").reverse()[0];
-                        }else{
-                            if(_output[1].properties.result.$ref){
-                                prop2=_output[1].properties.result.$ref?.split("/")?.reverse()[0];
-                            }else{
-                                prop2=_output[1].properties.result.type;
+                        if (prop1 == "IResponseAll") {
+                            prop2 = _output[1].properties.results.items.$ref.split("/").reverse()[0];
+                        } else {
+                            if (_output[1].properties.result.$ref) {
+                                prop2 = _output[1].properties.result.$ref?.split("/")?.reverse()[0];
+                            } else {
+                                prop2 = _output[1].properties.result.type;
                             }
                         }
-                        _output = ` :Promise<${prop1}<${prop2 || 'void'}>>`;
+                        _output = `${prop1}<${prop2 || 'void'}>`;
                         if (schemasPattern[prop2]) {
                             importsData.push({ key: prop2, data: this.SchemaModel(schemasPattern, prop2), type: "output" })
-                        } else if(prop2?.trim().toLowerCase()!="string") {
-                            console.log(prop2 + " is not in swagger - "+`${api.name.replace(/\{/g, '${')}`)
+                        } else if (prop2?.trim().toLowerCase() != "string") {
+                            console.log(prop2 + " is not in swagger - " + `${api.name.replace(/\{/g, '${')}`)
                         }
                     } else if (http.content["application/json"].schema.$ref) {
                         _output = http.content["application/json"].schema;
                         let prop1 = _output.$ref.split("/").reverse()[0];
-                        if(prop1=='IResponse'){
-                            _output = ':Promise<IResponse<void>>';
+                        if (prop1 == 'IResponse') {
+                            _output = 'IResponse<void>';
                             return
                         }
-                        _output = ` :Promise<${prop1}>`;
+                        _output = ` ${prop1}`;
                         if (schemasPattern[prop1]) {
                             importsModelsData.push(prop1);
                             // importsData.push({ key: prop1, data: this.SchemaModel(schemasPattern, prop1), type: "output" })
-                        } else if(prop1.trim()!="String") {
-                            console.log(prop1 + " is not in swagger"+`${api.name.replace(/\{/g, '${')}`)
+                        } else if (prop1.trim() != "String") {
+                            console.log(prop1 + " is not in swagger" + `${api.name.replace(/\{/g, '${')}`)
                         }
                     }
                 }
-            }).value(); 
+            }).value();
 
             arr.push(
-                `    public static ${api.operationId.split("Controller_")[1]} (${params.join(", ")})${_output || ' : Promise<any>'} {
-        return axios({
+                `    public static ${api.operationId.split("Controller_")[1]} (${params.join(", ")})${(_output ? ': Promise<AxiosResponse<' + _output + '>>' : ': Promise<AxiosResponse<any>>')} {
+        return axiosInstance({
         ${options.join(',\n')}
         })
         
@@ -251,23 +250,23 @@ export class VueGenService extends BaseService {
         indexTs.push(`export * from "./${fileNames[1] + ".service"}";`)
         if (arrModels.length) {
             indexTs.push(`export * from "./${fileNames[1] + ".dto"}";`)
-            await fs.writeFileSync(fileNames[0] + snakeCase(fileNames[1]) + ".dto.ts", data)
+            await fs.writeFileSync(fileNames[0] + fileNames[1] + ".dto.ts", data)
         }
 
         await fs.writeFileSync(fileNames[0] + "index.ts", indexTs.join("\n"))
 
         return (
-            `import axios from "axios";
-import { apiRoute } from "../../@base/base.service";
-${(()=>{
-    if(importsModelsData.length){
-       return `import {${_(importsModelsData).uniq().join()}} from "../../../models";\n`
-    }
-    return "";
-})()}import { IResponse, IResponseAll} from "../../@base/base.dto";
+            `import axiosInstance from "../../@base/base.service";
+import { AxiosResponse } from "axios";
+${(() => {
+                if (importsModelsData.length) {
+                    return `import {${_(importsModelsData).uniq().join()}} from "../../../models";\n`
+                }
+                return "";
+            })()}import { IResponse, IResponseAll} from "../../@base/base.dto";
 ${(() => {
                 if (importsData.length > 0) {
-                    return `import {${arrModels.filter(f=>!importsModelsData.includes(f.key)).map(f => f.key).join(', ')}} from "./${fileNames[1] + ".dto"}";`
+                    return `import {${arrModels.filter(f => !importsModelsData.includes(f.key)).map(f => f.key).join(', ')}} from "./${fileNames[1] + ".dto"}";`
                 }
                 return ``
             })()

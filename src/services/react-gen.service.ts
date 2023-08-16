@@ -88,7 +88,7 @@ export class ReactGenService extends BaseService {
             }
             
             await fs.writeFileSync(this.output + project +  "/models.ts", models.join("\n"));
-            await fs.writeFileSync(this.output + project + "/apis/@base/base.service.ts", baseService(this.environment, swagger))
+            await fs.writeFileSync(this.output + project + "/apis/@base/base.service.ts", baseService(this.environment, swagger, ""))
             await fs.writeFileSync(this.output + project + "/apis/@base/base.dto.ts", baseDto())
             
         }
@@ -241,8 +241,8 @@ export class ReactGenService extends BaseService {
 
         indexTs.push(`export * from "./${snakeCase(fileNames[1]) + ".service"}";`)
         if (arrModels.length) {
-            indexTs.push(`export * from "./${snakeCase(fileNames[1]) + ".dto"}";`)
-            await fs.writeFileSync(fileNames[0] + snakeCase(fileNames[1]) + ".dto.ts", _(data).uniq().join("\n"))
+            indexTs.push(`export * from "./${fileNames[1] + ".dto"}";`)
+            await fs.writeFileSync(fileNames[0] + fileNames[1] + ".dto.ts", _(data).uniq().join("\n"))
         }
 
         await fs.writeFileSync(fileNames[0] + "index.ts", indexTs.join("\n"))
@@ -257,7 +257,7 @@ ${(()=>{
 })()}
 ${(() => {
                 if (importsData.length > 0) {
-                    return `import {${arrModels.map(f => f.key).join(', ')}} from "./${snakeCase(fileNames[1])}.dto";`
+                    return `import {${arrModels.map(f => f.key).join(', ')}} from "./${fileNames[1]}.dto";`
                 }
                 return ``
             })()

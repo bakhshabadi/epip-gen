@@ -69,7 +69,7 @@ export class NgGenService extends BaseService {
         if (!(await fs.existsSync(this.output + "/apis/@base"))) {
             await fs.mkdirSync(this.output + "/apis/@base");
         }
-        await fs.writeFileSync(this.output + "/apis/@base/base.service.ts", baseService(this.environment, this.swgAddress))
+        await fs.writeFileSync(this.output + "/apis/@base/base.service.ts", baseService(this.environment, this.swgAddress,""))
         await fs.writeFileSync(this.output + "/apis/@base/base.dto.ts", baseDto())
         await fs.writeFileSync(this.output + "/apis/models.ts", models.join("\n"));
         console.log("your operation is succeed.")

@@ -36,6 +36,14 @@ export class VueGenCommander implements CommandRunner {
     } 
 
     @Option({
+        flags: '-in, --interceptor path [string]',
+        description: 'interceptor path.',
+    })
+    getInterceptorPath(env: string): void {
+        this.srv.interceptorPath = env;
+    } 
+
+    @Option({
         flags: '-v, --version',
         description: 'app version',
     })
