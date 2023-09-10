@@ -6,6 +6,7 @@ export class BaseService implements IFramework {
   public interceptorPath: string;
   public output: string;
   public swgAddress: string;
+  public tags: Array<string>;
 
   constructor() {}
   run(): Promise<void> {

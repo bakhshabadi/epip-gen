@@ -45,10 +45,14 @@ export class VueGenService extends BaseService {
             this.paths = [];
             for (const key in response.data.paths) {
                 if (Object.prototype.hasOwnProperty.call(response.data.paths, key)) {
+                    
                     const element = response.data.paths[key];
                     for (const key1 in element) {
                         if (Object.prototype.hasOwnProperty.call(element, key1)) {
                             const api = element[key1];
+                            if(this.tags && api.tags.length && !this.tags.includes(api.tags[0].split("/")[0].trim())){
+                                continue
+                            }
                             api.name = key;
                             api.method = key1;
                             this.paths.push(api)

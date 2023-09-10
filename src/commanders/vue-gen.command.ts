@@ -28,6 +28,14 @@ export class VueGenCommander implements CommandRunner {
     } 
 
     @Option({
+        flags: '-t, --tags [string]',
+        description: 'default is all tags',
+    })
+    getTags(tags: string): void {
+        this.srv.tags = tags.split(",");
+    } 
+
+    @Option({
         flags: '-e, --env [string]',
         description: 'environment key for baseUrl. defaule url is swagger\'s route',
     })
