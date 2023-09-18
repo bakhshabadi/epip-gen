@@ -261,16 +261,16 @@ export class VueGenService extends BaseService {
 
         return (
             `import axiosInstance from "../../@base/base.service";
-import { AxiosResponse } from "axios";
+import type { AxiosResponse } from "axios";
 ${(() => {
                 if (importsModelsData.length) {
-                    return `import {${_(importsModelsData).uniq().join()}} from "../../../models";\n`
+                    return `import type {${_(importsModelsData).uniq().join()}} from "../../../models";\n`
                 }
                 return "";
-            })()}import { IResponse, IResponseAll} from "../../@base/base.dto";
+            })()}import type { IResponse, IResponseAll} from "../../@base/base.dto";
 ${(() => {
                 if (importsData.length > 0) {
-                    return `import {${arrModels.filter(f => !importsModelsData.includes(f.key)).map(f => f.key).join(', ')}} from "./${fileNames[1] + ".dto"}";`
+                    return `import type {${arrModels.filter(f => !importsModelsData.includes(f.key)).map(f => f.key).join(', ')}} from "./${fileNames[1] + ".dto"}";`
                 }
                 return ``
             })()
