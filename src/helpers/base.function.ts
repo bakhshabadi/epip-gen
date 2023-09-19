@@ -23,14 +23,14 @@ export const baseService = (env: string, route: string, interceptorPath: string)
     } else {
         return `
 import axios from "axios";
-import { onRequest, onResponse } from "${interceptorPath || 'please set -in for interceptor path'}";
+import { onRequest, onResponse, onResponseError } from "${interceptorPath || 'please set -in for interceptor path'}";
     
 const axiosInstance = axios.create({
     baseURL: "${getUrl(route, env)}" 
 });
 
 axiosInstance.interceptors.request.use(onRequest);
-axiosInstance.interceptors.response.use(onResponse);
+axiosInstance.interceptors.response.use(onResponse, onResponseError);
 
 export default axiosInstance;
 `;

@@ -90,7 +90,7 @@ ${schema.enum.map((f) => `    ${f}="${f}"`).join(",\n")}
           schema.name + (element?.name || ""),
           element
         );
-        props.push(`public ${key.replace(/\@/g, "")}: ${res[0]},`);
+        props.push(`${key.replace(/\@/g, "")}?: ${res[0]},`);
         if (res[1]) {
           imports.push(res[1]);
         }
@@ -102,14 +102,12 @@ ${schema.enum.map((f) => `    ${f}="${f}"`).join(",\n")}
     return [
       enums
         ? enums
-        : `export class ${schema.name}${
+        : `export interface ${schema.name}${
             ["IResponseAll", "IResponse"].includes(schema.name) ? "<T>" : ""
           } {
-    constructor(
-        ${props.join("\n\t\t")}${
-            schema.name == "IResponseAll" ? "\n\tpublic results: T[]" : ""
-          }${schema.name == "IResponse" ? "\n\tpublic result: T" : ""}
-    ) { }
+    ${props.join("\n\t")}${
+        schema.name == "IResponseAll" ? "\n\tresults: T[]" : ""
+      }${schema.name == "IResponse" ? "\n\tresult: T" : ""}    
 }`,
       imports,
     ];
@@ -131,7 +129,7 @@ ${schema.enum.map((f) => `    ${f}="${f}"`).join(",\n")}
     }
     return `export interface ${name} {
 ${_(data)
-  .map((f) => `    "${f.name}": ${checkArray(f)},`)
+  .map((f) => `    "${f.name}"?: ${checkArray(f)},`)
   .value()
   .join("\n")}
 }`;
