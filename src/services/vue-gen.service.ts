@@ -45,12 +45,12 @@ export class VueGenService extends BaseService {
             this.paths = [];
             for (const key in response.data.paths) {
                 if (Object.prototype.hasOwnProperty.call(response.data.paths, key)) {
-                    
+
                     const element = response.data.paths[key];
                     for (const key1 in element) {
                         if (Object.prototype.hasOwnProperty.call(element, key1)) {
                             const api = element[key1];
-                            if(this.tags && api.tags.length && !this.tags.includes(api.tags[0].split("/")[0].trim())){
+                            if (this.tags && api.tags.length && !this.tags.includes(api.tags[0].split("/")[0].trim())) {
                                 continue
                             }
                             api.name = key;
@@ -145,7 +145,9 @@ export class VueGenService extends BaseService {
                 _queries = api.parameters.filter(f => f.in == "query");
             }
 
+
             let _queryName = "";
+            let _bodyName = "";
             let options = [
                 `    method: '${api.method.toUpperCase()}'`,
                 `            url: \`${api.name.replace(/\{/g, '${')}\``,
@@ -185,6 +187,17 @@ export class VueGenService extends BaseService {
                     } else if (model.trim() != "String") {
                         console.log(model + " is not in swagger - " + `${api.name.replace(/\{/g, '${')}`)
                     }
+                } else if (_body?.properties) {
+                    _bodyName = api.operationId.split("Controller_")[1] + "BodyDtoIn";
+                    _bodyName = _bodyName.substring(0, 1).toUpperCase()[0] + _bodyName.substring(1);
+                    // importsModelsData.push({})
+                    // { 
+                    //     ${_(_body.properties).map((f,key)=>`${key}: ${getType(f)}`).value().join(',\n\t\t')}
+                    // }
+                    options.push('            data: data ');
+                    importsData.push({ key: _bodyName, data: [this.createBody(_bodyName, _body?.properties), []], type: "query" });
+
+                    params.push(`data: ${_bodyName}`);
                 }
             }
 
@@ -260,14 +273,14 @@ export class VueGenService extends BaseService {
         await fs.writeFileSync(fileNames[0] + "index.ts", indexTs.join("\n"))
 
         return (
-            `import axiosInstance from "../../@base/base.service";
+            `import axiosInstance from "../@base/base.service";
 import type { AxiosResponse } from "axios";
 ${(() => {
                 if (importsModelsData.length) {
-                    return `import type {${_(importsModelsData).uniq().join()}} from "../../../models";\n`
+                    return `import type {${_(importsModelsData).uniq().join()}} from "../../models";\n`
                 }
                 return "";
-            })()}import type { IResponse, IResponseAll} from "../../@base/base.dto";
+            })()}import type { IResponse, IResponseAll} from "../@base/base.dto";
 ${(() => {
                 if (importsData.length > 0) {
                     return `import type {${arrModels.filter(f => !importsModelsData.includes(f.key)).map(f => f.key).join(', ')}} from "./${fileNames[1] + ".dto"}";`

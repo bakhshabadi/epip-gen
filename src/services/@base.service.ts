@@ -8,11 +8,11 @@ export class BaseService implements IFramework {
   public swgAddress: string;
   public tags: Array<string>;
 
-  constructor() {}
+  constructor() { }
   run(): Promise<void> {
     throw new Error("Method not implemented.");
   }
-  generateApi(paths: any, project:string): Promise<string> {
+  generateApi(paths: any, project: string): Promise<string> {
     throw new Error("Method not implemented.");
   }
   generateEnums(): Promise<void> {
@@ -24,7 +24,7 @@ export class BaseService implements IFramework {
   protected end() {
     process.exit(0);
   }
-  protected percent() {}
+  protected percent() { }
 
   protected createType(
     pattern: any,
@@ -44,16 +44,16 @@ export class BaseService implements IFramework {
       let entityName = prop.$ref.split("/").reverse()[0];
       return [
         entityName + (isArray ? "[]" : ""),
-        `import { ${entityName} } from "../../../models";`,
+        `import { ${entityName} } from "../../models";`,
       ];
     }
 
     switch (prop.type) {
       case "integer":
         return ["number"];
-        case "number":
+      case "number":
         return ["number"];
-        case "boolean":
+      case "boolean":
         return ["boolean"];
       case "string":
         return [prop.type + (isArray ? "[]" : "")];
@@ -102,17 +102,31 @@ ${schema.enum.map((f) => `    ${f}="${f}"`).join(",\n")}
     return [
       enums
         ? enums
-        : `export interface ${schema.name}${
-            ["IResponseAll", "IResponse"].includes(schema.name) ? "<T>" : ""
-          } {
-    ${props.join("\n\t")}${
-        schema.name == "IResponseAll" ? "\n\tresults: T[]" : ""
-      }${schema.name == "IResponse" ? "\n\tresult: T" : ""}    
+        : `export interface ${schema.name}${["IResponseAll", "IResponse"].includes(schema.name) ? "<T>" : ""
+        } {
+    ${props.join("\n\t")}${schema.name == "IResponseAll" ? "\n\tresults: T[]" : ""
+        }${schema.name == "IResponse" ? "\n\tresult: T" : ""}    
 }`,
       imports,
     ];
   }
 
+  protected createBody(name: string, data: any[]) {
+    function getType(f) {
+      if (f.type == 'array') {
+        return 'Array<File>'
+      } else {
+        return f.type
+      }
+    }
+
+    return `export interface ${name} { 
+${_(data)
+        .map((f, key) => `    ${key}: ${getType(f)},`)
+        .value()
+        .join('\n')}
+}`
+  }
   protected createQuery(name: string, data: any[]) {
     function checkArray(f: any) {
       try {
@@ -129,9 +143,9 @@ ${schema.enum.map((f) => `    ${f}="${f}"`).join(",\n")}
     }
     return `export interface ${name} {
 ${_(data)
-  .map((f) => `    "${f.name}"?: ${checkArray(f)},`)
-  .value()
-  .join("\n")}
+        .map((f) => `    ${f.name}?: ${checkArray(f)},`)
+        .value()
+        .join("\n")}
 }`;
   }
 }
