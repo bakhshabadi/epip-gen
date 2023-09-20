@@ -113,10 +113,17 @@ ${schema.enum.map((f) => `    ${f}="${f}"`).join(",\n")}
 
   protected createBody(name: string, data: any[]) {
     function getType(f) {
+      const _getType = (item) => {
+        if (item.type == "string" && item.format == "binary") {
+          return 'File';
+        } else {
+          return item.type
+        }
+      }
       if (f.type == 'array') {
-        return 'Array<File>'
+        return `Array<${_getType(f.items)}>`
       } else {
-        return f.type
+        return _getType(f);
       }
     }
 

@@ -10,6 +10,7 @@ import * as Services from '../services';
   providers: [
     Commanders.NgGenCommander,
     Commanders.VueGenCommander,
+    Commanders.VersionCommander,
     // Commanders.ReactGenCommander,
     Services.NgGenService,
     Services.VueGenService,
