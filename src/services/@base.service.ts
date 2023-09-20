@@ -44,7 +44,7 @@ export class BaseService implements IFramework {
       let entityName = prop.$ref.split("/").reverse()[0];
       return [
         entityName + (isArray ? "[]" : ""),
-        `import { ${entityName} } from "../../models";`,
+        `import type { ${entityName} } from "../../models";`,
       ];
     }
 

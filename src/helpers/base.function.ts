@@ -11,22 +11,19 @@ export const toPascalCase = (str: string) => {
 
 function getUrl(route: string, env: string) {
     if (env) {
-        return `import.meta.${env}`
+        return `import.meta.env.${env}`
     } else {
-        return (route.split("/").filter((f, i) => i < 3).join("/"))
+        return '"'+(route.split("/").filter((f, i) => i < 3).join("/"))+'"'
     }
 }
 
 export const baseService = (env: string, route: string, interceptorPath: string) => {
-    if (env) {
-        return `export const apiRoute = import.meta.${env};`;
-    } else {
-        return `
+    return `
 import axios from "axios";
 import { onRequest, onResponse, onResponseError } from "${interceptorPath || 'please set -in for interceptor path'}";
     
 const axiosInstance = axios.create({
-    baseURL: "${getUrl(route, env)}" 
+    baseURL: ${getUrl(route, env)}
 });
 
 axiosInstance.interceptors.request.use(onRequest);
@@ -34,7 +31,6 @@ axiosInstance.interceptors.response.use(onResponse, onResponseError);
 
 export default axiosInstance;
 `;
-    }
 
 }
 

@@ -197,7 +197,7 @@ export class VueGenService extends BaseService {
                     options.push('            data: data ');
                     importsData.push({ key: _bodyName, data: [this.createBody(_bodyName, _body?.properties), []], type: "query" });
 
-                    params.push(`data: ${_bodyName}`);
+                    params.push(`data: ${_bodyName} | FormData`);
                 }
             }
 
