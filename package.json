@@ -18,7 +18,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "gen:help": "nest build && node dist\\main.js gen --help",
     "start": "rimraf dist & npm run build & node dist\\main.js gen -t vue -o ./ -h http://localhost:8585/api/v1/swagger.json",
-    "start:check": "ts-node version",
+    "start:check": "ts-node src/main.ts version",
     "start:dev": "ts-node src/main.ts vue -o ./dist -h http://5.161.193.73:9595/v1/api/swagger.json -in jooooon ",
     "start:debug": "nest start --debug --watch",
     "start:jahan": "epip-generate vue -o ./dist -t auth,patient,physo,vidu,paypal -h https://api.test.hemscap.com/v1/api/swagger.json -in @/core/interceptor",
