@@ -165,9 +165,9 @@ export class VueGenService extends BaseService {
             if (_body) {
                 if (_body['application/json']) {
                     _body = _body['application/json'];
-                    options.push(`            headers: {"Content-Type": "multipart/form-data"}`)
                 } else if (_body["multipart/form-data"]) {
                     _body = _body['multipart/form-data'];
+                    options.push(`            headers: {"Content-Type": "multipart/form-data"}`)
                 } else if (_body["application/x-www-form-urlencoded"]) {
                     _body = _body["application/x-www-form-urlencoded"];
                 } else {

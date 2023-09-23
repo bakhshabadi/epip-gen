@@ -10,6 +10,4 @@ export class VersionCommander implements CommandRunner {
     ): Promise<void> {
         console.log(pkg.version);
     }
-
-
 }
