@@ -30,10 +30,11 @@ export class BaseService implements IFramework {
     pattern: any,
     schemaName: string,
     prop: any,
-    isArray: boolean = false
-  ) {
+    isArray: boolean = false,
+    key: string = ""
+  ): [string, string, string] {
     if (!prop) {
-      return ["any"];
+      return ["any", "", ""];
     }
 
     if (prop.anyOf) {
@@ -45,18 +46,27 @@ export class BaseService implements IFramework {
       return [
         entityName + (isArray ? "[]" : ""),
         `import type { ${entityName} } from "../../models";`,
+        ""
       ];
     }
 
     switch (prop.type) {
       case "integer":
-        return ["number"];
+        return ["number", "", ""];
       case "number":
-        return ["number"];
+        return ["number", "", ""];
       case "boolean":
-        return ["boolean"];
+        return [prop.type + (isArray ? "[]" : ""), "", ""];
       case "string":
-        return [prop.type + (isArray ? "[]" : "")];
+        if (prop.enum) {
+          const name= key.substring(0,1).toUpperCase()+key.substring(1)+"Type";
+          return [name + (isArray ? "[]" : ""), "", `
+export enum ${name} {
+${prop.enum.map((f) => `    ${f.toUpperCase()}="${f}"`).join(",\n")}
+}
+          `]
+        }
+        return [prop.type + (isArray ? "[]" : ""), "", ""];
       case "object":
         if (prop.items) {
           return this.createType(pattern, schemaName, prop.items);
@@ -78,7 +88,7 @@ export class BaseService implements IFramework {
     if (schema.enum) {
       enums = `
 export enum ${schema.name} {
-${schema.enum.map((f) => `    ${f}="${f}"`).join(",\n")}
+${schema.enum.map((f) => `    ${f.toUpperCase()}="${f}"`).join(",\n")}
 }
 `;
     }
@@ -88,8 +98,13 @@ ${schema.enum.map((f) => `    ${f}="${f}"`).join(",\n")}
         const res = this.createType(
           pattern,
           schema.name + (element?.name || ""),
-          element
+          element,
+          schema.type == "array",
+          key
         );
+        if (res[2]) {//is enum
+          enums += res[2]
+        }
         props.push(`${key.replace(/\@/g, "")}?: ${res[0]},`);
         if (res[1]) {
           imports.push(res[1]);
@@ -100,13 +115,11 @@ ${schema.enum.map((f) => `    ${f}="${f}"`).join(",\n")}
     imports = _(imports).uniq().value();
 
     return [
-      enums
-        ? enums
-        : `export interface ${schema.name}${["IResponseAll", "IResponse"].includes(schema.name) ? "<T>" : ""
-        } {
-    ${props.join("\n\t")}${schema.name == "IResponseAll" ? "\n\tresults: T[]" : ""
-        }${schema.name == "IResponse" ? "\n\tresult: T" : ""}    
-}`,
+(enums ? enums : '') + (!schema.enum? `export interface ${schema.name}${["IResponseAll", "IResponse"].includes(schema.name) ? "<T>" : ""
+} {
+${props.join("\n\t")}${schema.name == "IResponseAll" ? "\n\tresults: T[]" : ""
+}${schema.name == "IResponse" ? "\n\tresult: T" : ""}    
+}`:''),
       imports,
     ];
   }

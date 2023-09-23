@@ -6,6 +6,9 @@ import * as fs from "fs";
 import { baseDto, baseService } from "../helpers/base.function";
 import to from "await-to-js";
 
+import * as prettier from "prettier";
+import path = require("path");
+
 export class VueGenService extends BaseService {
     constructor() {
         super();
@@ -13,6 +16,38 @@ export class VueGenService extends BaseService {
     private schemas: Array<any> = [];
     private schemasPattern: any = {};
     private paths: Array<any> = [];
+
+    private async getPrettierConfig() {
+        const srcDirPath = path.resolve(__dirname, '../src')
+        const prettierRcPath = path.join(srcDirPath, '.prettierrc')
+
+        if (await fs.existsSync(prettierRcPath)) {
+            try {
+                const prettierRcContent = await fs.readFileSync(prettierRcPath, 'utf8')
+                return JSON.parse(prettierRcContent)
+            } catch (error) {
+                throw new Error(`Error reading Prettier config file: ${prettierRcPath}`)
+            }
+        }
+
+        return {
+            singleQuote: true,
+            semi: true,
+            tabWidth: 2,
+            printWidth: 100,
+            trailingComma: "none"
+        }
+    }
+
+    private async writeFileSync(address, content) {
+        // const prettierConfig = await this.getPrettierConfig()
+        // const data = prettier.format(content, {
+        //     // ...prettierConfig,
+        //     parser: 'babel-ts',
+        // });
+
+        await fs.writeFileSync(address, content);
+    }
 
     override async run(): Promise<void> {
         const arrSwagger = this.swgAddress.split(",");
@@ -87,9 +122,9 @@ export class VueGenService extends BaseService {
                 await fs.mkdirSync(this.output + project + "/apis/@base");
             }
 
-            await fs.writeFileSync(this.output + project + "/models.ts", models.join("\n"));
-            await fs.writeFileSync(this.output + project + "/apis/@base/base.service.ts", baseService(this.environment, swagger, this.interceptorPath))
-            await fs.writeFileSync(this.output + project + "/apis/@base/base.dto.ts", baseDto())
+            await this.writeFileSync(this.output + project + "/models.ts", models.join("\n"));
+            await this.writeFileSync(this.output + project + "/apis/@base/base.service.ts", baseService(this.environment, swagger, this.interceptorPath))
+            await this.writeFileSync(this.output + project + "/apis/@base/base.dto.ts", baseDto())
         }
 
         console.log("your operation is succeed.")
@@ -109,7 +144,10 @@ export class VueGenService extends BaseService {
             }
         }
 
-        await fs.writeFileSync(route + arr[arr.length - 1].trim() + ".service.ts", await this.SchemaApi(path, this.schemasPattern, [route, arr[arr.length - 1].trim()]));
+        await this.writeFileSync(
+            route + arr[arr.length - 1].trim() + ".service.ts", 
+            await this.SchemaApi(path, this.schemasPattern, [route, arr[arr.length - 1].trim()])
+        );
         return route;
     }
 
@@ -267,10 +305,10 @@ export class VueGenService extends BaseService {
         indexTs.push(`export * from "./${fileNames[1] + ".service"}";`)
         if (arrModels.length) {
             indexTs.push(`export * from "./${fileNames[1] + ".dto"}";`)
-            await fs.writeFileSync(fileNames[0] + fileNames[1] + ".dto.ts", data)
+            await this.writeFileSync(fileNames[0] + fileNames[1] + ".dto.ts", data)
         }
 
-        await fs.writeFileSync(fileNames[0] + "index.ts", indexTs.join("\n"))
+        await this.writeFileSync(fileNames[0] + "index.ts", indexTs.join("\n"))
 
         return (
             `import axiosInstance from "../@base/base.service";
