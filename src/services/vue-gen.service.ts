@@ -18,15 +18,15 @@ export class VueGenService extends BaseService {
     private paths: Array<any> = [];
 
     private async getPrettierConfig() {
-        const srcDirPath = path.resolve(__dirname, '../src')
-        const prettierRcPath = path.join(srcDirPath, '.prettierrc')
+        const prettierRcPath = path.join(__dirname, '.prettierrc')
 
         if (await fs.existsSync(prettierRcPath)) {
             try {
                 const prettierRcContent = await fs.readFileSync(prettierRcPath, 'utf8')
                 return JSON.parse(prettierRcContent)
             } catch (error) {
-                throw new Error(`Error reading Prettier config file: ${prettierRcPath}`)
+                return {}
+                // throw new Error(`Error reading Prettier config file: ${prettierRcPath}`)
             }
         }
 
@@ -40,13 +40,13 @@ export class VueGenService extends BaseService {
     }
 
     private async writeFileSync(address, content) {
-        // const prettierConfig = await this.getPrettierConfig()
-        // const data = prettier.format(content, {
-        //     // ...prettierConfig,
-        //     parser: 'babel-ts',
-        // });
+        const prettierConfig = await this.getPrettierConfig()
+        const data = prettier.format(content, {
+            ...prettierConfig,
+            parser: 'babel-ts',
+        });
 
-        await fs.writeFileSync(address, content);
+        await fs.writeFileSync(address, data);
     }
 
     override async run(): Promise<void> {
@@ -311,14 +311,14 @@ export class VueGenService extends BaseService {
         await this.writeFileSync(fileNames[0] + "index.ts", indexTs.join("\n"))
 
         return (
-            `import axiosInstance from "../@base/base.service";
+            `import axiosInstance from "../../@base/base.service";
 import type { AxiosResponse } from "axios";
 ${(() => {
                 if (importsModelsData.length) {
-                    return `import type {${_(importsModelsData).uniq().join()}} from "../../models";\n`
+                    return `import type {${_(importsModelsData).uniq().join()}} from "../../../models";\n`
                 }
                 return "";
-            })()}import type { IResponse, IResponseAll} from "../@base/base.dto";
+            })()}import type { IResponse, IResponseAll} from "../../@base/base.dto";
 ${(() => {
                 if (importsData.length > 0) {
                     return `import type {${arrModels.filter(f => !importsModelsData.includes(f.key)).map(f => f.key).join(', ')}} from "./${fileNames[1] + ".dto"}";`
