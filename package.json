@@ -1,6 +1,6 @@
 {
   "name": "epip-generate",
-  "version": "1.2.57",
+  "version": "1.2.58",
   "description": "",
   "author": "",
   "license": "UNLICENSED",
@@ -19,7 +19,7 @@
     "gen:help": "nest build && node dist\\main.js gen --help",
     "start": "rimraf dist & npm run build & node dist\\main.js gen -t vue -o ./ -h http://localhost:8585/api/v1/swagger.json",
     "start:check": "ts-node src/main.ts version",
-    "start:dev": "ts-node src/main.ts vue -o ./dist -h http://5.161.193.73:9595/v1/api/swagger.json -in jooooon ",
+    "start:dev": "ts-node src/main.ts vue -h http://localhost:9595/v1/api/swagger.json -o ./dist -in ../../../constant/interceptor.const -e VITE_APP_URL",
     "start:debug": "nest start --debug --watch",
     "start:jahan": "ts-node src/main.ts vue -o ./dist -t auth,patient,paypal,vidu,physo -h http://5.161.193.73:8585/v1/api/swagger.json -in @/core/interceptor",
     "start:prod": "node dist/main",
