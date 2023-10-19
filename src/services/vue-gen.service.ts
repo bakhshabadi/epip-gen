@@ -17,6 +17,11 @@ export class VueGenService extends BaseService {
     private schemasPattern: any = {};
     private paths: Array<any> = [];
 
+    private getPathSplit() {
+        const val = [...new Array(this.splitPath)].map(_ => '../').join('');
+        return val;
+    }
+
     private async getPrettierConfig() {
         const prettierRcPath = path.join(__dirname, '.prettierrc')
 
@@ -41,7 +46,7 @@ export class VueGenService extends BaseService {
 
     private async writeFileSync(address, content) {
         const prettierConfig = await this.getPrettierConfig()
-        const data = prettier.format(content, {
+        const data = await prettier.format(content, {
             ...prettierConfig,
             parser: 'babel-ts',
         });
@@ -145,7 +150,7 @@ export class VueGenService extends BaseService {
         }
 
         await this.writeFileSync(
-            route + arr[arr.length - 1].trim() + ".service.ts", 
+            route + arr[arr.length - 1].trim() + ".service.ts",
             await this.SchemaApi(path, this.schemasPattern, [route, arr[arr.length - 1].trim()])
         );
         return route;
@@ -281,11 +286,30 @@ export class VueGenService extends BaseService {
                 }
             }).value();
 
+            let __output = "";
+            let __to =(str)=>`${str}`;
+            let __async ="";
+            if (this.plugin.split(",").includes("to")) {
+                __to =(str)=>`await to(${str})`;
+                __async = "async"
+                if (_output) {
+                    __output = ': Promise<[AxiosError | null, undefined | AxiosResponse<' + _output + '>]>';
+                } else {
+                    __output = ': Promise<[AxiosError | null, undefined | AxiosResponse<any>]>'
+                }
+            } else {
+                if (_output) {
+                    __output = ': Promise<AxiosResponse<' + _output + '>>';
+                } else {
+                    __output = ': Promise<AxiosResponse<any>>'
+                }
+            }
+
             arr.push(
-                `    public static ${api.operationId.split("Controller_")[1]} (${params.join(", ")})${(_output ? ': Promise<AxiosResponse<' + _output + '>>' : ': Promise<AxiosResponse<any>>')} {
-        return axiosInstance({
-        ${options.join(',\n')}
-        })
+                `    public static ${__async} ${api.operationId.split("Controller_")[1]} (${params.join(", ")})${__output} {
+        return ${__to(`axiosInstance({
+            ${options.join(',\n')}
+            })`)}
         
     }`
             )
@@ -310,15 +334,21 @@ export class VueGenService extends BaseService {
 
         await this.writeFileSync(fileNames[0] + "index.ts", indexTs.join("\n"))
 
-        return (
-            `import axiosInstance from "../../@base/base.service";
-import type { AxiosResponse } from "axios";
+        var retVal = (
+            `import axiosInstance from "${this.getPathSplit()}@base/base.service";
+import type { AxiosError,AxiosResponse } from "axios";
+${(()=>{
+    if(this.plugin.split("plugin").includes("to")){
+        return "import to from 'await-to-js';";
+    }
+    return "";
+})()}
 ${(() => {
                 if (importsModelsData.length) {
-                    return `import type {${_(importsModelsData).uniq().join()}} from "../../../models";\n`
+                    return `import type {${_(importsModelsData).uniq().join()}} from "${this.getPathSplit()}../models";\n`
                 }
                 return "";
-            })()}import type { IResponse, IResponseAll} from "../../@base/base.dto";
+            })()}import type { IResponse, IResponseAll} from "${this.getPathSplit()}@base/base.dto";
 ${(() => {
                 if (importsData.length > 0) {
                     return `import type {${arrModels.filter(f => !importsModelsData.includes(f.key)).map(f => f.key).join(', ')}} from "./${fileNames[1] + ".dto"}";`
@@ -331,6 +361,7 @@ export class ${className}ServiceApi {
 ${arr.join('\n')}
 
 }`);
+        return retVal;
     }
 
 }

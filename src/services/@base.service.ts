@@ -7,6 +7,9 @@ export class BaseService implements IFramework {
   public output: string;
   public swgAddress: string;
   public tags: Array<string>;
+  public splitPath: number;
+  public plugin: string = "";
+
 
   constructor() { }
   run(): Promise<void> {
@@ -54,12 +57,13 @@ export class BaseService implements IFramework {
       case "integer":
         return ["number", "", ""];
       case "number":
+      case "decimal":
         return ["number", "", ""];
       case "boolean":
         return [prop.type + (isArray ? "[]" : ""), "", ""];
       case "string":
         if (prop.enum) {
-          const name= key.substring(0,1).toUpperCase()+key.substring(1)+"Type";
+          const name = key.substring(0, 1).toUpperCase() + key.substring(1) + "Type";
           return [name + (isArray ? "[]" : ""), "", `
 export enum ${name} {
 ${prop.enum.map((f) => `    ${f.toUpperCase()}="${f}"`).join(",\n")}
@@ -115,11 +119,11 @@ ${schema.enum.map((f) => `    ${f.toUpperCase()}="${f}"`).join(",\n")}
     imports = _(imports).uniq().value();
 
     return [
-(enums ? enums : '') + (!schema.enum? `export interface ${schema.name}${["IResponseAll", "IResponse"].includes(schema.name) ? "<T>" : ""
-} {
+      (enums ? enums : '') + (!schema.enum ? `export interface ${schema.name}${["IResponseAll", "IResponse"].includes(schema.name) ? "<T>" : ""
+        } {
 ${props.join("\n\t")}${schema.name == "IResponseAll" ? "\n\tresults: T[]" : ""
-}${schema.name == "IResponse" ? "\n\tresult: T" : ""}    
-}`:''),
+        }${schema.name == "IResponse" ? "\n\tresult: T" : ""}    
+}`: ''),
       imports,
     ];
   }

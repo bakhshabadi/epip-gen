@@ -20,6 +20,14 @@ export class VueGenCommander implements CommandRunner {
     }
 
     @Option({
+        flags: '-s, --step [string]',
+        description: 'step path',
+    })
+    getStepPath(output: string): void {
+        this.srv.splitPath = +output;
+    }
+
+    @Option({
         flags: '-h, --host [string]',
         description: 'the url address has contain the file swagger.json',
     })
@@ -41,6 +49,14 @@ export class VueGenCommander implements CommandRunner {
     })
     getEnvironment(env: string): void {
         this.srv.environment = env;
+    } 
+
+    @Option({
+        flags: '-p, --plugin [string]',
+        description: 'environment key for baseUrl. defaule url is swagger\'s route',
+    })
+    getPlugin(plugin: string): void {
+        this.srv.plugin = plugin;
     } 
 
     @Option({

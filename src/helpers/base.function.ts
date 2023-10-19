@@ -42,6 +42,7 @@ export const baseDto = () => (
 }
 
 export interface IResponseAll<T>{
+    count: number,
     status: number,
     message: string,
     results: T[]
