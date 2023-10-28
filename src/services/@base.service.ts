@@ -63,7 +63,7 @@ export class BaseService implements IFramework {
         return [prop.type + (isArray ? "[]" : ""), "", ""];
       case "string":
         if (prop.enum) {
-          const name = key.substring(0, 1).toUpperCase() + key.substring(1) + "Type";
+          const name = schemaName+key.substring(0, 1).toUpperCase() + key.substring(1) + "Type";
           return [name + (isArray ? "[]" : ""), "", `
 export enum ${name} {
 ${prop.enum.map((f) => `    ${f.toUpperCase()}="${f}"`).join(",\n")}
