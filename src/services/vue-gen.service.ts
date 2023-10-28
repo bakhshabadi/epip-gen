@@ -293,15 +293,15 @@ export class VueGenService extends BaseService {
                 __to =(str)=>`await to(${str})`;
                 __async = "async"
                 if (_output) {
-                    __output = ': Promise<[AxiosError | null, undefined | AxiosResponse<' + _output + '>]>';
+                    __output = ': Promise<[AxiosError | null, undefined | ' + _output + ']>';
                 } else {
-                    __output = ': Promise<[AxiosError | null, undefined | AxiosResponse<any>]>'
+                    __output = ': Promise<[AxiosError | null, undefined | any]>'
                 }
             } else {
                 if (_output) {
-                    __output = ': Promise<AxiosResponse<' + _output + '>>';
+                    __output = ': Promise<' + _output + '>';
                 } else {
-                    __output = ': Promise<AxiosResponse<any>>'
+                    __output = ': Promise<any>'
                 }
             }
 
