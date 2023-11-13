@@ -7,6 +7,7 @@ export class BaseService implements IFramework {
   public output: string;
   public swgAddress: string;
   public tags: Array<string>;
+  public timeout: number;
   public splitPath: number;
   public plugin: string = "";
 
@@ -63,7 +64,7 @@ export class BaseService implements IFramework {
         return [prop.type + (isArray ? "[]" : ""), "", ""];
       case "string":
         if (prop.enum) {
-          const name = schemaName+key.substring(0, 1).toUpperCase() + key.substring(1) + "Type";
+          const name = schemaName + key.substring(0, 1).toUpperCase() + key.substring(1) + "Type";
           return [name + (isArray ? "[]" : ""), "", `
 export enum ${name} {
 ${prop.enum.map((f) => `    ${f.toUpperCase()}="${f}"`).join(",\n")}

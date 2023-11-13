@@ -13,17 +13,18 @@ function getUrl(route: string, env: string) {
     if (env) {
         return `import.meta.env.${env}`
     } else {
-        return '"'+(route.split("/").filter((f, i) => i < 3).join("/"))+'"'
+        return '"' + (route.split("/").filter((f, i) => i < 3).join("/")) + '"'
     }
 }
 
-export const baseService = (env: string, route: string, interceptorPath: string) => {
+export const baseService = (env: string, route: string, interceptorPath: string, timeout: number = 20000) => {
     return `
 import axios from "axios";
 import { onRequest, onResponse, onResponseError } from "${interceptorPath || 'please set -in for interceptor path'}";
     
 const axiosInstance = axios.create({
-    baseURL: ${getUrl(route, env)}
+    baseURL: ${getUrl(route, env)},
+    timeout: ${timeout}
 });
 
 axiosInstance.interceptors.request.use(onRequest);

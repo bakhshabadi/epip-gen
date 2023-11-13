@@ -33,7 +33,7 @@ export class VueGenCommander implements CommandRunner {
     })
     getSwaggerAddress(swgAddress: string): void {
         this.srv.swgAddress = swgAddress;
-    } 
+    }
 
     @Option({
         flags: '-t, --tags [string]',
@@ -41,7 +41,15 @@ export class VueGenCommander implements CommandRunner {
     })
     getTags(tags: string): void {
         this.srv.tags = tags.split(",");
-    } 
+    }
+
+    @Option({
+        flags: '-ti, --timeout [string]',
+        description: 'timeout is 20000',
+    })
+    getTimeout(times: string): void {
+        this.srv.timeout = +times;
+    }
 
     @Option({
         flags: '-e, --env [string]',
@@ -49,7 +57,7 @@ export class VueGenCommander implements CommandRunner {
     })
     getEnvironment(env: string): void {
         this.srv.environment = env;
-    } 
+    }
 
     @Option({
         flags: '-p, --plugin [string]',
@@ -57,7 +65,7 @@ export class VueGenCommander implements CommandRunner {
     })
     getPlugin(plugin: string): void {
         this.srv.plugin = plugin;
-    } 
+    }
 
     @Option({
         flags: '-in, --interceptor path [string]',
@@ -65,7 +73,7 @@ export class VueGenCommander implements CommandRunner {
     })
     getInterceptorPath(env: string): void {
         this.srv.interceptorPath = env;
-    } 
+    }
 
     @Option({
         flags: '-v, --version',
@@ -74,5 +82,5 @@ export class VueGenCommander implements CommandRunner {
     getVersion(): void {
         console.log(process.version)
         process.exit()
-    } 
+    }
 }

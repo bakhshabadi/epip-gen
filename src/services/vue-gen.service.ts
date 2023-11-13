@@ -128,7 +128,7 @@ export class VueGenService extends BaseService {
             }
 
             await this.writeFileSync(this.output + project + "/models.ts", models.join("\n"));
-            await this.writeFileSync(this.output + project + "/apis/@base/base.service.ts", baseService(this.environment, swagger, this.interceptorPath))
+            await this.writeFileSync(this.output + project + "/apis/@base/base.service.ts", baseService(this.environment, swagger, this.interceptorPath, this.timeout))
             await this.writeFileSync(this.output + project + "/apis/@base/base.dto.ts", baseDto())
         }
 
@@ -287,10 +287,10 @@ export class VueGenService extends BaseService {
             }).value();
 
             let __output = "";
-            let __to =(str)=>`${str}`;
-            let __async ="";
+            let __to = (str) => `${str}`;
+            let __async = "";
             if (this.plugin.split(",").includes("to")) {
-                __to =(str)=>`await to(${str})`;
+                __to = (str) => `await to(${str})`;
                 __async = "async"
                 if (_output) {
                     __output = ': Promise<[AxiosError | null, undefined | ' + _output + ']>';
@@ -337,12 +337,12 @@ export class VueGenService extends BaseService {
         var retVal = (
             `import axiosInstance from "${this.getPathSplit()}@base/base.service";
 import type { AxiosError,AxiosResponse } from "axios";
-${(()=>{
-    if(this.plugin.split("plugin").includes("to")){
-        return "import to from 'await-to-js';";
-    }
-    return "";
-})()}
+${(() => {
+                if (this.plugin.split("plugin").includes("to")) {
+                    return "import to from 'await-to-js';";
+                }
+                return "";
+            })()}
 ${(() => {
                 if (importsModelsData.length) {
                     return `import type {${_(importsModelsData).uniq().join()}} from "${this.getPathSplit()}../models";\n`
