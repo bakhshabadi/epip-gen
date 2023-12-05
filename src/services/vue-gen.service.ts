@@ -108,7 +108,7 @@ export class VueGenService extends BaseService {
             for (let i = 0; i < this.schemas.length; i++) {
                 const element = this.schemas[i];
                 this.schemasPattern[element.name] = element;
-                models.push(this.SchemaModel(this.schemasPattern, element.name)[0]);
+                models.push(this.SchemaModel(this.schemasPattern, element.name, this.splitPath)[0]);
             }
 
             const arr = _(this.paths).groupBy(f => f.tags[0]).value()
@@ -264,7 +264,7 @@ export class VueGenService extends BaseService {
                         }
                         _output = `${prop1}<${prop2 || 'void'}>`;
                         if (schemasPattern[prop2]) {
-                            importsData.push({ key: prop2, data: this.SchemaModel(schemasPattern, prop2), type: "output" })
+                            importsData.push({ key: prop2, data: this.SchemaModel(schemasPattern, prop2, this.splitPath), type: "output" })
                         } else if (prop2?.trim().toLowerCase() != "string") {
                             console.log(prop2 + " is not in swagger - " + `${api.name.replace(/\{/g, '${')}`)
                         }

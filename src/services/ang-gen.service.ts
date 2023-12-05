@@ -51,7 +51,7 @@ export class NgGenService extends BaseService {
         for (let i = 0; i < this.schemas.length; i++) {
             const element = this.schemas[i];
             this.schemasPattern[element.name] = element;
-            models.push(this.SchemaModel(this.schemasPattern, element.name)[0]);
+            models.push(this.SchemaModel(this.schemasPattern, element.name, this.splitPath)[0]);
         }
 
         const arr = _(this.paths).groupBy(f => f.tags[0]).value()
@@ -69,7 +69,7 @@ export class NgGenService extends BaseService {
         if (!(await fs.existsSync(this.output + "/apis/@base"))) {
             await fs.mkdirSync(this.output + "/apis/@base");
         }
-        await fs.writeFileSync(this.output + "/apis/@base/base.service.ts", baseService(this.environment, this.swgAddress,""))
+        await fs.writeFileSync(this.output + "/apis/@base/base.service.ts", baseService(this.environment, this.swgAddress, ""))
         await fs.writeFileSync(this.output + "/apis/@base/base.dto.ts", baseDto())
         await fs.writeFileSync(this.output + "/apis/models.ts", models.join("\n"));
         console.log("your operation is succeed.")
@@ -154,7 +154,7 @@ export class NgGenService extends BaseService {
                     options.push('            data: data ');
                     // imports.push(`import { ${model} } from "./${fileNames[1]}.dto";`)
                     if (schemasPattern[model]) {
-                        importsData.push({ key: model, data: this.SchemaModel(schemasPattern, model), type: "body" });
+                        importsData.push({ key: model, data: this.SchemaModel(schemasPattern, model, this.splitPath), type: "body" });
                     } else {
                         console.log(model + " is not in swagger")
                     }
@@ -172,7 +172,7 @@ export class NgGenService extends BaseService {
                         let prop2 = _output[1].properties[prop1 == "IResponseAll" ? 'results' : 'result'].items.$ref.split("/").reverse()[0]
                         _output = ` :Promise<${prop1}<${prop2}>>`;
                         if (schemasPattern[prop2]) {
-                            importsData.push({ key: prop2, data: this.SchemaModel(schemasPattern, prop2), type: "output" })
+                            importsData.push({ key: prop2, data: this.SchemaModel(schemasPattern, prop2, this.splitPath), type: "output" })
                         } else {
                             console.log(prop2 + " is not in swagger")
                         }
@@ -181,7 +181,7 @@ export class NgGenService extends BaseService {
                         let prop1 = _output.$ref.split("/").reverse()[0];
                         _output = ` :Promise<${prop1}>`;
                         if (schemasPattern[prop1]) {
-                            importsData.push({ key: prop1, data: this.SchemaModel(schemasPattern, prop1), type: "output" })
+                            importsData.push({ key: prop1, data: this.SchemaModel(schemasPattern, prop1, this.splitPath), type: "output" })
                         } else {
                             console.log(prop1 + " is not in swagger")
                         }

@@ -22,7 +22,7 @@ export class ReactGenService extends BaseService {
         const arrSwagger = this.swgAddress.split(",");
         for (let i = 0; i < arrSwagger.length; i++) {
             const swagger = arrSwagger[i];
-            
+
             const [err, response] = await to(axios({
                 method: 'GET',
                 url: swagger,
@@ -34,17 +34,17 @@ export class ReactGenService extends BaseService {
                 throw new Error("http status is " + response.status);
             }
 
-            const project= "/"+swagger.split("://")[1].split(".")[0];
+            const project = "/" + swagger.split("://")[1].split(".")[0];
             if (!(await fs.existsSync(this.output + project))) {
                 await fs.mkdirSync(this.output + project);
             }
 
-    
+
             this.schemas = _(response.data.definitions).map((f, k) => {
                 f.name = k;
                 return f;
             }).value();
-    
+
             this.paths = [];
             for (const key in response.data.paths) {
                 if (Object.prototype.hasOwnProperty.call(response.data.paths, key)) {
@@ -59,45 +59,45 @@ export class ReactGenService extends BaseService {
                     }
                 }
             }
-    
+
             let models = [];
-    
+
             for (let i = 0; i < this.schemas.length; i++) {
                 const element = this.schemas[i];
                 this.schemasPattern[element.name] = element;
-                models.push(this.SchemaModel(this.schemasPattern, element.name)[0]);
+                models.push(this.SchemaModel(this.schemasPattern, element.name, this.splitPath)[0]);
             }
-    
-    
+
+
             const arr = _(this.paths).groupBy(f => f.tags[0]).value()
             let indexTs = [];
             for (const key in arr) {
                 if (Object.prototype.hasOwnProperty.call(arr, key)) {
                     const element = arr[key];
-                    let str = await this.generateApi(element,project).catch(err => {
+                    let str = await this.generateApi(element, project).catch(err => {
                         throw new Error('Error: ' + err)
                     });
                     indexTs.push(str)
                 }
             }
 
-           
-    
+
+
             if (!(await fs.existsSync(this.output + project + "/apis/@base"))) {
                 await fs.mkdirSync(this.output + project + "/apis/@base");
             }
-            
-            await fs.writeFileSync(this.output + project +  "/models.ts", models.join("\n"));
+
+            await fs.writeFileSync(this.output + project + "/models.ts", models.join("\n"));
             await fs.writeFileSync(this.output + project + "/apis/@base/base.service.ts", baseService(this.environment, swagger, ""))
             await fs.writeFileSync(this.output + project + "/apis/@base/base.dto.ts", baseDto())
-            
+
         }
-        
-        
+
+
         console.log("your operation is succeed.")
     }
 
-    override async generateApi(path: any, project:string): Promise<string> {
+    override async generateApi(path: any, project: string): Promise<string> {
         if (!(await fs.existsSync(this.output + project + "/apis/"))) {
             await fs.mkdirSync(this.output + project + "/apis/");
         }
@@ -131,7 +131,7 @@ export class ReactGenService extends BaseService {
         for (let index = 0; index < apis.length; index++) {
             const api = apis[index];
             if (!className) {
-                className = api.operationId.split("_")[0]+fileNames[1];
+                className = api.operationId.split("_")[0] + fileNames[1];
             }
 
             let params = [];
@@ -175,12 +175,12 @@ export class ReactGenService extends BaseService {
             const _resp = api?.responses;
             const _output = _(_resp).map((http, j) => {
                 let _outputName = null;
-                if(!http?.schema["$ref"]){
+                if (!http?.schema["$ref"]) {
                     _outputName = api.operationId.split("_")[1] + "DtoOut";
-                    const props=http.schema.properties;
+                    const props = http.schema.properties;
                     importsData.push({ key: _outputName, data: [this.createQuery(_outputName, props), []], type: "output" });
-                }else{
-                    _outputName=http?.schema["$ref"].split("/").reverse()[0];
+                } else {
+                    _outputName = http?.schema["$ref"].split("/").reverse()[0];
                     if (schemasPattern[_outputName]) {
                         // importsData.push({ key: _outputName, data: this.SchemaModel(schemasPattern, _outputName), type: "output" })
                         importsModelsData.push(_outputName);
@@ -193,15 +193,15 @@ export class ReactGenService extends BaseService {
 
             let output = "any";
             let axiosOutput = "any";
-            if(_output?.length){
+            if (_output?.length) {
                 output = _output.join(' | ')
                 axiosOutput = _output[0]
             }
             arr.push(
-                `    public static async ${api.operationId.split("_")[1]} (${params.join(", ")} ${params.length?', ':''}headers: { [k: string]: string } = {})${` : Promise<${axiosOutput}>`} {
+                `    public static async ${api.operationId.split("_")[1]} (${params.join(", ")} ${params.length ? ', ' : ''}headers: { [k: string]: string } = {})${` : Promise<${axiosOutput}>`} {
         const [err, resp] = await to(
             axios<${axiosOutput}, any>({
-                ${options.join(',\n')}${options.length?',':''}
+                ${options.join(',\n')}${options.length ? ',' : ''}
                 headers
 
             })
@@ -221,16 +221,16 @@ export class ReactGenService extends BaseService {
     }`
             )
         }
-        
+
         let arrModels = _(importsData).uniqBy(f => f.key).value();
         let data = [];
 
         arrModels.map(f => {
-            f.data[1].map(d=>{
+            f.data[1].map(d => {
                 data.push(d) //imports
             })
         })
-        
+
 
         data.push("")
         arrModels.map(f => {
@@ -250,11 +250,11 @@ export class ReactGenService extends BaseService {
         return (
             `import axios from "axios";
 import { apiRoute } from "../@base/base.service";
-${(()=>{
-    if(importsModelsData.length){
-       return `import {${_(importsModelsData).uniq().join()}} from "../../models";`
-    }
-})()}
+${(() => {
+                if (importsModelsData.length) {
+                    return `import {${_(importsModelsData).uniq().join()}} from "../../models";`
+                }
+            })()}
 ${(() => {
                 if (importsData.length > 0) {
                     return `import {${arrModels.map(f => f.key).join(', ')}} from "./${fileNames[1]}.dto";`

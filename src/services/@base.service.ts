@@ -34,8 +34,9 @@ export class BaseService implements IFramework {
     pattern: any,
     schemaName: string,
     prop: any,
+    step: number,
     isArray: boolean = false,
-    key: string = ""
+    key: string = "",
   ): [string, string, string] {
     if (!prop) {
       return ["any", "", ""];
@@ -49,7 +50,7 @@ export class BaseService implements IFramework {
       let entityName = prop.$ref.split("/").reverse()[0];
       return [
         entityName + (isArray ? "[]" : ""),
-        `import type { ${entityName} } from "../../models";`,
+        `import type { ${entityName} } from "${[...new Array(this.splitPath)].map(_ => '../').join('')}../models";`,
         ""
       ];
     }
@@ -74,17 +75,17 @@ ${prop.enum.map((f) => `    ${f.toUpperCase()}="${f}"`).join(",\n")}
         return [prop.type + (isArray ? "[]" : ""), "", ""];
       case "object":
         if (prop.items) {
-          return this.createType(pattern, schemaName, prop.items);
+          return this.createType(pattern, schemaName, prop.items, step);
         }
       case "array":
-        return this.createType(pattern, schemaName, prop.items, true);
+        return this.createType(pattern, schemaName, prop.items, step, true);
 
       default:
         throw new Error("error " + JSON.stringify(prop));
     }
   }
 
-  protected SchemaModel(pattern, schema) {
+  protected SchemaModel(pattern, schema, step) {
     schema = pattern[schema];
     // console.log(schema.name)
     let props = [];
@@ -104,8 +105,9 @@ ${schema.enum.map((f) => `    ${f.toUpperCase()}="${f}"`).join(",\n")}
           pattern,
           schema.name + (element?.name || ""),
           element,
+          step,
           schema.type == "array",
-          key
+          key,
         );
         if (res[2]) {//is enum
           enums += res[2]
