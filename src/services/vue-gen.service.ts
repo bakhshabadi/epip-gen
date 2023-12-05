@@ -250,27 +250,33 @@ export class VueGenService extends BaseService {
             _(_resp).map(async (http, j) => {
                 if (http.content) {
                     if (http.content["application/json"].schema.allOf) {
-                        _output = http.content["application/json"].schema.allOf
-                        let prop1 = _output[0].$ref.split("/").reverse()[0];
+                        let prop1 = http.content["application/json"].schema.allOf[0].$ref.split("/").reverse()[0];
                         let prop2 = '';
                         if (prop1 == "IResponseAll") {
-                            prop2 = _output[1].properties.results.items.$ref.split("/").reverse()[0];
-                        } else {
-                            if (_output[1].properties.result.$ref) {
-                                prop2 = _output[1].properties.result.$ref?.split("/")?.reverse()[0];
+                            if (http.content["application/json"].schema.allOf[1]) {
+                                prop2 = http.content["application/json"].schema.allOf[1].properties.results.items.$ref.split("/").reverse()[0];
                             } else {
-                                prop2 = _output[1].properties.result.type;
+                                prop2 = 'void'
+                            }
+                        } else {
+                            if (http.content["application/json"].schema.allOf[1]) {
+                                if (http.content["application/json"].schema.allOf[1].properties.result.$ref) {
+                                    prop2 = http.content["application/json"].schema.allOf[1].properties.result.$ref?.split("/")?.reverse()[0];
+                                } else {
+                                    prop2 = http.content["application/json"].schema.allOf[1].properties.result.type;
+                                }
+                            } else {
+                                prop2 = 'void'
                             }
                         }
-                        _output = `${prop1}<${prop2 || 'void'}>`;
+                        _output = `${prop1}<${prop2}>`;
                         if (schemasPattern[prop2]) {
                             importsData.push({ key: prop2, data: this.SchemaModel(schemasPattern, prop2, this.splitPath), type: "output" })
-                        } else if (prop2?.trim().toLowerCase() != "string") {
+                        } else if (!prop2) {
                             console.log(prop2 + " is not in swagger - " + `${api.name.replace(/\{/g, '${')}`)
                         }
                     } else if (http.content["application/json"].schema.$ref) {
-                        _output = http.content["application/json"].schema;
-                        let prop1 = _output.$ref.split("/").reverse()[0];
+                        let prop1 = http.content["application/json"].schema.$ref.split("/").reverse()[0];
                         if (prop1 == 'IResponse') {
                             _output = 'IResponse<void>';
                             return
