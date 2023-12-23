@@ -18,7 +18,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "gen:help": "nest build && node dist\\main.js gen --help",
     "start": "rimraf dist & npm run build & node dist\\main.js gen -t vue -o ./ -h http://localhost:8585/api/v1/swagger.json",
-    "swagger": "ts-node src/main.ts  vue -o ./dist -p to,axios-request-config  -h http://localhost:8585/v1/api/swagger.json -in @/core/interceptor -e VITE_APP_URL -s 2",
+    "swagger": "ts-node src/main.ts  vue -o ./dist -p to  -h http://localhost:8585/v1/api/swagger.json -in @/core/interceptor -e VITE_APP_URL -s 2",
     "start:check": "ts-node src/main.ts version",
     "start:dev": "ts-node src/main.ts vue -o ./dist -p to -t auth,patient,physo,vidu,paypal -h https://api.test.hemscap.com/v1/api/swagger.json -in @/core/interceptor -e VITE_APP_URL -s 2",
     "start:debug": "nest start --debug --watch",

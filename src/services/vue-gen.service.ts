@@ -312,9 +312,9 @@ export class VueGenService extends BaseService {
             }
 
             arr.push(
-                `    public static ${__async} ${api.operationId.split("Controller_")[1]} (${params.join(", ")})${__output} {
+                `    public static ${__async} ${api.operationId.split("Controller_")[1]} (${params.join(", ")}${`${params.join(", ").length ? ', ' : ''}options?: AxiosRequestConfig`})${__output} {
         return ${__to(`axiosInstance({
-            ${options.join(',\n')}
+            ${options.join(',\n')}${options.length ? ',' : ''}...options
             })`)}
         
     }`
@@ -342,7 +342,7 @@ export class VueGenService extends BaseService {
 
         var retVal = (
             `import axiosInstance from "${this.getPathSplit()}@base/base.service";
-import type { AxiosError,AxiosResponse } from "axios";
+import type { AxiosError, AxiosResponse , AxiosRequestConfig } from "axios";
 ${(() => {
                 if (this.plugin.split("plugin").includes("to")) {
                     return "import to from 'await-to-js';";
