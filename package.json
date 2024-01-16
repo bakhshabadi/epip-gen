@@ -1,6 +1,6 @@
 {
   "name": "epip-generate",
-  "version": "1.2.78",
+  "version": "1.2.79",
   "description": "",
   "author": "",
   "license": "UNLICENSED",
@@ -20,7 +20,7 @@
     "start": "rimraf dist & npm run build & node dist\\main.js gen -t vue -o ./ -h http://localhost:8585/api/v1/swagger.json",
     "swagger": "ts-node src/main.ts  vue -o ./dist -p to  -h http://localhost:8585/v1/api/swagger.json -in @/core/interceptor -e VITE_APP_URL -s 2",
     "start:check": "ts-node src/main.ts version",
-    "start:dev": "ts-node src/main.ts vue -o ./dist -p to,class-dto -t auth,patient,physo,vidu,paypal -h https://api.test.hemscap.com/v1/api/swagger.json -in @/core/interceptor -e VITE_APP_URL -s 2",
+    "start:dev": "ts-node src/main.ts vue -o ./dist -p to,class-dto -t auth,patient,physo,vidu,paypal -h https://nlpapi.test.hemscap.com/v1/api/swagger.json -in @/core/interceptor -e VITE_APP_URL -s 1",
     "start:debug": "nest start --debug --watch",
     "start:jahan": "ts-node src/main.ts vue -o ./dist -t auth,patient,paypal,vidu,physo -h http://5.161.193.73:8585/v1/api/swagger.json -in @/core/interceptor",
     "start:prod": "node dist/main",
