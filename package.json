@@ -1,6 +1,6 @@
 {
   "name": "epip-generate",
-  "version": "1.2.79",
+  "version": "1.2.80",
   "description": "",
   "author": "",
   "license": "UNLICENSED",
@@ -9,6 +9,7 @@
     "epip-generate": "./src/main.js"
   },
   "preferGlobal": true,
+  "exports": {},
   "scripts": {
     "prebuild": "rimraf dist",
     "up-version": "npm version patch --force",
