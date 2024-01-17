@@ -95,6 +95,47 @@ export class VueGenService extends BaseService {
         })
         .value()
 
+      const bodiesSchema = _(response.data.paths)
+        .map((f, k1) => {
+          const retVal = _(f)
+            .map((r, k) => {
+              r.method = k
+              r.path = k1
+              if (r.requestBody)
+                r.bodies = _(r.requestBody.content)
+                  .map((ff, kk) => {
+                    ff.type = kk
+                    return ff
+                  })
+                  .filter((ss) => {
+                    return !ss.schema.$ref
+                  })
+                  .value()
+              return r
+            })
+            .value()
+          return retVal
+        })
+        .map((f) => {
+          return {
+            name: f[0][this.schemaKey],
+            data: _(f)
+              .flatMap((r) => r.bodies)
+              .value()
+          }
+        })
+        .filter((f) => {
+          return f.data.length && f.data[0]?.schema
+        })
+        .map((f) => {
+          this.schemas.push({
+            name: f.name,
+            ...f.data[0].schema
+          })
+        })
+        .value()
+      // .filter((f, k) => {})
+
       this.paths = []
       for (const key in response.data.paths) {
         if (Object.prototype.hasOwnProperty.call(response.data.paths, key)) {
@@ -122,7 +163,14 @@ export class VueGenService extends BaseService {
       for (let i = 0; i < this.schemas.length; i++) {
         const element = this.schemas[i]
         this.schemasPattern[element.name] = element
-        models.push(this.SchemaModel(this.schemasPattern, element.name, this.splitPath)[0])
+        models.push(
+          this.SchemaModel(
+            this.schemasPattern,
+            element.name,
+            this.splitPath,
+            this.getPlugin('class-dto')
+          )[0]
+        )
       }
 
       const arr = _(this.paths)
@@ -143,7 +191,10 @@ export class VueGenService extends BaseService {
         await fs.mkdirSync(this.output + project + '/apis/@base')
       }
 
-      await this.writeFileSync(this.output + project + '/models.ts', models.join('\n'))
+      await this.writeFileSync(
+        this.output + project + '/models.ts',
+        `import Ajv from "ajv";\n\n` + models.join('\n')
+      )
       await this.writeFileSync(
         this.output + project + '/apis/@base/base.service.ts',
         baseService(this.environment, swagger, this.interceptorPath, this.timeout)
@@ -186,9 +237,10 @@ export class VueGenService extends BaseService {
     let importsData = []
     let importsModelsData = []
     for (let index = 0; index < apis.length; index++) {
+      let isBody = false
       const api = apis[index]
       if (!className) {
-        className = api.operationId.split('Controller_')[0]
+        className = api[this.schemaKey].split('Controller_')[0]
       }
 
       let params = []
@@ -209,7 +261,7 @@ export class VueGenService extends BaseService {
         `            url: \`${api.name.replace(/\{/g, '${')}\``
       ]
       if (_queries.length) {
-        _queryName = api.operationId.split('Controller_')[1] + 'QueryDtoIn'
+        _queryName = api[this.schemaKey].split('Controller_')[1] + 'QueryDtoIn'
         // queries.push(createQuery(_queryName, _queries));
         importsData.push({
           key: _queryName,
@@ -237,6 +289,7 @@ export class VueGenService extends BaseService {
         _body = _body.schema
 
         if (_body['$ref']) {
+          isBody = true
           let model = _body['$ref'].split('/').reverse()[0]
           params.push('data: ' + model)
           options.push('            data: data ')
@@ -248,20 +301,23 @@ export class VueGenService extends BaseService {
             console.log(model + ' is not in swagger - ' + `${api.name.replace(/\{/g, '${')}`)
           }
         } else if (_body?.properties) {
-          _bodyName = api.operationId.split('Controller_')[1] + 'BodyDtoIn'
+          isBody = true
+          _bodyName = api[this.schemaKey].split('Controller_')[1] + 'BodyDtoIn'
           _bodyName = _bodyName.substring(0, 1).toUpperCase()[0] + _bodyName.substring(1)
           // importsModelsData.push({})
           // {
           //     ${_(_body.properties).map((f,key)=>`${key}: ${getType(f)}`).value().join(',\n\t\t')}
           // }
           options.push('            data: data ')
-          importsData.push({
-            key: _bodyName,
-            data: [this.createBody(_bodyName, _body?.properties), []],
-            type: 'query'
-          })
+          const model = api[this.schemaKey]
+          if (schemasPattern[model]) {
+            importsModelsData.push(model)
+            // importsData.push({ key: model, data: this.SchemaModel(schemasPattern, model), type: "body" });
+          } else if (model.trim() != 'String') {
+            console.log(model + ' is not in swagger - ' + `${api.name.replace(/\{/g, '${')}`)
+          }
 
-          params.push(`data: ${_bodyName} | FormData`)
+          params.push(`data: ${model} | FormData`)
         }
       }
 
@@ -303,7 +359,12 @@ export class VueGenService extends BaseService {
               if (schemasPattern[prop2]) {
                 importsData.push({
                   key: prop2,
-                  data: this.SchemaModel(schemasPattern, prop2, this.splitPath),
+                  data: this.SchemaModel(
+                    schemasPattern,
+                    prop2,
+                    this.splitPath,
+                    this.getPlugin('class-dto')
+                  ),
                   type: 'output'
                 })
               } else if (!prop2) {
@@ -347,9 +408,25 @@ export class VueGenService extends BaseService {
       }
 
       arr.push(
-        `    public static ${__async} ${api.operationId.split('Controller_')[1]} (${params.join(
+        `    public static ${__async} ${api[this.schemaKey].split('Controller_')[1]} (${params.join(
           ', '
         )}${`${params.join(', ').length ? ', ' : ''}options?: AxiosRequestConfig`})${__output} {
+          ${(() => {
+            if (this.getPlugin('class-dto') && isBody) {
+              return `
+              if(data.dtoValidation() != true){
+                ${
+                  this.getPlugin('to')
+                    ? 'return [new AxiosError(data.dtoValidation() as string), undefined]'
+                    : 'return new Promise((_,rej)=>{rej(data.dtoValidation())})'
+                }
+                
+              }
+            `
+            } else {
+              return ''
+            }
+          })()}
         return ${__to(`axiosInstance({
             ${options.join(',\n')}${options.length ? ',' : ''}...options
             })`)}
@@ -374,15 +451,19 @@ export class VueGenService extends BaseService {
     indexTs.push(`export * from "./${fileNames[1] + '.service'}";`)
     if (arrModels.length) {
       indexTs.push(`export * from "./${fileNames[1] + '.dto'}";`)
-      await this.writeFileSync(fileNames[0] + fileNames[1] + '.dto.ts', data)
+      await this.writeFileSync(
+        fileNames[0] + fileNames[1] + '.dto.ts',
+        `import Ajv from "ajv";\n\n` + data
+      )
     }
 
     await this.writeFileSync(fileNames[0] + 'index.ts', indexTs.join('\n'))
 
     var retVal = `import axiosInstance from "${this.getPathSplit()}@base/base.service";
-import type { AxiosError, AxiosResponse , AxiosRequestConfig } from "axios";
+import { AxiosError,type AxiosResponse ,type AxiosRequestConfig } from "axios";
+
 ${(() => {
-  if (this.plugin.split('plugin').includes('to')) {
+  if (this.getPlugin('to')) {
     return "import to from 'await-to-js';"
   }
   return ''

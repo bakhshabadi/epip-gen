@@ -65,7 +65,7 @@ export class ReactGenService extends BaseService {
             for (let i = 0; i < this.schemas.length; i++) {
                 const element = this.schemas[i];
                 this.schemasPattern[element.name] = element;
-                models.push(this.SchemaModel(this.schemasPattern, element.name, this.splitPath)[0]);
+                models.push(this.SchemaModel(this.schemasPattern, element.name, this.splitPath,this.getPlugin('class-dto'))[0]);
             }
 
 
