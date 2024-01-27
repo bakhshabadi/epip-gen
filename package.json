@@ -1,6 +1,6 @@
 {
   "name": "epip-generate",
-  "version": "1.2.82",
+  "version": "1.2.83",
   "description": "",
   "author": "",
   "license": "UNLICENSED",
@@ -23,7 +23,7 @@
     "start:check": "ts-node src/main.ts version",
     "start:py": "ts-node src/main.ts vue -o ./dist -key operationId -p to -h https://nlpapi.test.hemscap.com/v1/api/swagger.json -in @/core/interceptor -e VITE_APP_URL -s 1",
     "start:api": "openapi --input http://localhost:9595/v1/api/swagger.json --output ./dist/generated --client axios",
-    "start:dev": "ts-node src/main.ts vue -o ./dist -p to,class-dto -h https://api.test.hemscap.com/v1/api/swagger.json -in @/core/interceptor -e VITE_APP_URL -s 2",
+    "start:dev": "ts-node src/main.ts vue -o ./dist -p to -h https://api.test.hemscap.com/v1/api/swagger.json -in @/core/interceptor -e VITE_APP_URL -s 2",
     "start:debug": "nest start --debug --watch",
     "start:moien": "ts-node src/main.ts vue -o ./dist -h https://api.test.hemscap.com/v1/api/swagger.json -in @/core/interceptor",
     "start:prod": "node dist/main",
