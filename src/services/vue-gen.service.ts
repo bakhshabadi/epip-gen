@@ -95,7 +95,7 @@ export class VueGenService extends BaseService {
         })
         .value()
 
-      const bodiesSchema = _(response.data.paths)
+      _(response.data.paths)
         .map((f, k1) => {
           const retVal = _(f)
             .map((r, k) => {
@@ -118,7 +118,7 @@ export class VueGenService extends BaseService {
         })
         .map((f) => {
           return {
-            name: f[0][this.schemaKey],
+            name: f[0].operationId,
             data: _(f)
               .flatMap((r) => r.bodies)
               .value()
@@ -153,6 +153,22 @@ export class VueGenService extends BaseService {
               api.name = key
               api.method = key1
               this.paths.push(api)
+              if(api.parameters && api.parameters.length){
+                let props = {}
+                const required = [];
+                api.parameters.map(f=>{
+                  props[f.name]=f.schema;
+                  if(f.required){
+                    required.push(f.name)
+                  }
+                });
+                // this.schemas.push({
+                //   name: (api.operationId.split('Controller_').length ? api.operationId.split('Controller_')[1]:api.operationId)+'DtoIn',
+                //   properties: props,
+                //   type: 'object',
+                //   required
+                // })
+              }
             }
           }
         }
@@ -240,7 +256,7 @@ export class VueGenService extends BaseService {
       let isBody = false
       const api = apis[index]
       if (!className) {
-        className = api[this.schemaKey].split('Controller_')[0]
+        className = api.operationId.split('Controller_')[0]
       }
 
       let params = []
@@ -261,7 +277,7 @@ export class VueGenService extends BaseService {
         `            url: \`${api.name.replace(/\{/g, '${')}\``
       ]
       if (_queries.length) {
-        _queryName = api[this.schemaKey].split('Controller_')[1] + 'QueryDtoIn'
+        _queryName = (api.operationId.split('Controller_')[1] || api.operationId) + 'QueryDtoIn'
         // queries.push(createQuery(_queryName, _queries));
         importsData.push({
           key: _queryName,
@@ -302,14 +318,14 @@ export class VueGenService extends BaseService {
           }
         } else if (_body?.properties) {
           isBody = true
-          _bodyName = api[this.schemaKey].split('Controller_')[1] + 'BodyDtoIn'
+          _bodyName = (api.operationId.split('Controller_')[1] || api.operationId) + 'BodyDtoIn'
           _bodyName = _bodyName.substring(0, 1).toUpperCase()[0] + _bodyName.substring(1)
           // importsModelsData.push({})
           // {
           //     ${_(_body.properties).map((f,key)=>`${key}: ${getType(f)}`).value().join(',\n\t\t')}
           // }
           options.push('            data: data ')
-          const model = api[this.schemaKey]
+          const model = api.operationId
           if (schemasPattern[model]) {
             importsModelsData.push(model)
             // importsData.push({ key: model, data: this.SchemaModel(schemasPattern, model), type: "body" });
@@ -408,7 +424,7 @@ export class VueGenService extends BaseService {
       }
 
       arr.push(
-        `    public static ${__async} ${api[this.schemaKey].split('Controller_')[1]} (${params.join(
+        `    public static ${__async} ${api.operationId.split('Controller_')[1] || api.operationId} (${params.join(
           ', '
         )}${`${params.join(', ').length ? ', ' : ''}options?: AxiosRequestConfig`})${__output} {
           ${(() => {

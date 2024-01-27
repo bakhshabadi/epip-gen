@@ -26,14 +26,6 @@ export class VueGenCommander implements CommandRunner {
   }
 
   @Option({
-    flags: '-key, --key [string]',
-    description: 'key in schema'
-  })
-  setSchemaKey(output: string): void {
-    this.srv.schemaKey = output
-  }
-
-  @Option({
     flags: '-h, --host [string]',
     description: 'the url address has contain the file swagger.json'
   })

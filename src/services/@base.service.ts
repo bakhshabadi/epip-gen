@@ -9,7 +9,6 @@ export class BaseService implements IFramework {
   public tags: Array<string>
   public timeout: number
   public splitPath: number
-  public schemaKey: string
   public plugin: string = ''
 
   constructor() {}
@@ -279,10 +278,14 @@ ${_(data)
       try {
         if (f.type == 'array') {
           return f.items.type ? f.schema.items.type + '[]' : 'any[]'
-        } else if (f.type == 'integer') {
+        } else if (f.type == 'integer' || f.type == 'number') {
           return 'number'
+        } else if (f.type == 'string' ) {
+          return 'string'
+        } else if (f.type == 'boolean' ) {
+          return 'boolean'
         } else {
-          return f.schema.type
+          return checkArray(f.schema)
         }
       } catch (err) {
         console.error(f)
