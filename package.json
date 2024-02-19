@@ -9,7 +9,7 @@
     "epip-generate": "./src/main.js"
   },
   "files": [
-    "./dist"
+    "dist"
   ],
   "preferGlobal": true,
   "exports": {},
