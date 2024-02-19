@@ -83,7 +83,7 @@ export class VueGenService extends BaseService {
       }
 
       // const project = "/" + swagger.split("://")[1].split("/")[0].split(".").reverse()[1].replace(":", "")+"";
-      const project = '/services'
+      const project = ''
       if (!(await fs.existsSync(this.output + project))) {
         await fs.mkdirSync(this.output + project)
       }

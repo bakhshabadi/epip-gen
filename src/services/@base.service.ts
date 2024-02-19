@@ -25,11 +25,11 @@ export class BaseService implements IFramework {
     throw new Error('Method not implemented.')
   }
 
-  private createConstructor() {
-    return `constructor(json: any){
-                    for( const key in json ) {
-                      if(Object.prototype.hasOwnProperty.call(this, key)){
-                        this[key] = json[key];
+  private createConstructor(name) {
+    return `constructor(json: Partial<${name}>){
+                    for(const key in json){
+                      if (key in this) {
+                        (this as any)[key] = json[key as keyof ${name}];
                       }else{
                         throw new Error(\`pedarsag in key(\${key}) ro nadarim\`)
                       }
@@ -47,7 +47,7 @@ export class BaseService implements IFramework {
         const ajv = new Ajv();
         const valid = ajv.validate(this.schema, this);
         if (!valid) {
-          return ajv.errors.map(f=>f.message).join('\\n');
+          return ajv!.errors!.map(f=>f.message).join('\\n');
         }
         return true;
       }
@@ -58,9 +58,9 @@ export class BaseService implements IFramework {
     return `
       public validationProperty(key:string){
         const ajv = new Ajv();
-        const validate = ajv.compile(this.schema);
-        const result = validate(this);
-        const error = validate.errors.find(f=>f.params.missingProperty==key)
+        const validate = ajv.compile(this.schema) as any;
+        validate(this);
+        const error = validate.errors.find((f: any)=>f.params.missingProperty==key)
         if (error){
           return error.message;
         }
@@ -220,7 +220,7 @@ ${schema.enum.map((f) => `    ${f.toUpperCase()}="${f}"`).join(',\n')}
             } {
               ${
                 // constructor for class
-                (isValidate && !isSpecialType && this.createConstructor()) || ''
+                (isValidate && !isSpecialType && this.createConstructor(schema.name)) || ''
               }
 
             ${
