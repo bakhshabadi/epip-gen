@@ -1,6 +1,6 @@
 {
   "name": "epip-generate",
-  "version": "1.2.84",
+  "version": "1.2.85",
   "description": "",
   "author": "",
   "license": "UNLICENSED",
@@ -17,7 +17,7 @@
     "prebuild": "rimraf dist",
     "up-version": "npm version patch --force",
     "publish-app": "npm publish --registry http://5.161.193.73:4873/",
-    "build:app": "npm run up-version && tsc -p ./tsconfig.json && npm publish",
+    "build:app": "npm run up-version --force && tsc -p ./tsconfig.json && npm publish",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "gen:help": "nest build && node dist\\main.js gen --help",
