@@ -26,26 +26,33 @@ export class BaseService implements IFramework {
   }
 
   private createConstructor(name) {
-    return `constructor(json: Partial<${name}>){
-                    for(const key in json){
-                      if (key in this) {
-                        (this as any)[key] = json[key as keyof ${name}];
-                      }else{
-                        throw new Error(\`pedarsag in key(\${key}) ro nadarim\`)
-                      }
-                    }
-                  }`
+    return `
+      constructor(json?: Partial<${name}>){
+        if(json){
+          for(const key in json){
+            if (key in this) {
+              (this as any)[key] = json[key as keyof ${name}];
+            }else{
+              throw new Error(\`pedarsag in key(\${key}) ro nadarim\`)
+            }
+          }
+        }
+      }
+                
+      static arrayGenerate(arrJson: Array<Partial<${name}>>){
+        return arrJson.map((item: Partial<${name}>)=>new ${name}(item));
+      }`
   }
   private createDtoSchema(schema: any) {
     return `
-      private schema =  ${JSON.stringify(schema)}
+    static schema =  ${JSON.stringify(schema)}
     `
   }
-  private createDtoValidation() {
+  private createDtoValidation(name:string) {
     return `
       public dtoValidation(){
         const ajv = new Ajv();
-        const valid = ajv.validate(this.schema, this);
+        const valid = ajv.validate(${name}.schema, this);
         if (!valid) {
           return ajv!.errors!.map(f=>f.message).join('\\n');
         }
@@ -54,11 +61,11 @@ export class BaseService implements IFramework {
     `
   }
 
-  private createValidationProperty() {
+  private createValidationProperty(name:string) {
     return `
       public validationProperty(key:string){
         const ajv = new Ajv();
-        const validate = ajv.compile(this.schema) as any;
+        const validate = ajv.compile(${name}.schema) as any;
         validate(this);
         const error = validate.errors.find((f: any)=>f.params.missingProperty==key)
         if (error){
@@ -235,12 +242,12 @@ ${schema.enum.map((f) => `    ${f.toUpperCase()}="${f}"`).join(',\n')}
 
             ${
               // dtoValidation for class
-              (isValidate && !isSpecialType && this.createDtoValidation()) || ''
+              (isValidate && !isSpecialType && this.createDtoValidation(schema.name)) || ''
             }
 
             ${
               // validation property for class
-              (isValidate && !isSpecialType && this.createValidationProperty()) || ''
+              (isValidate && !isSpecialType && this.createValidationProperty(schema.name)) || ''
             }
 }`
           : ''),
