@@ -82,7 +82,7 @@ export class NgGenService extends BaseService {
     }
     await fs.writeFileSync(
       this.output + '/apis/@base/base.service.ts',
-      baseService(this.environment, this.swgAddress, '')
+      baseService(this.environment, this.swgAddress, '',false)
     )
     await fs.writeFileSync(this.output + '/apis/@base/base.dto.ts', baseDto())
     await fs.writeFileSync(

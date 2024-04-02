@@ -17,7 +17,7 @@ function getUrl(route: string, env: string) {
     }
 }
 
-export const baseService = (env: string, route: string, interceptorPath: string, timeout: number = 20000) => {
+export const baseService = (env: string, route: string, interceptorPath: string, isReact:boolean, timeout: number = 20000) => {
     return `
 import axios from "axios";
 import { onRequest, onResponse, onResponseError } from "${interceptorPath || 'please set -in for interceptor path'}";
@@ -27,8 +27,10 @@ const axiosInstance = axios.create({
     timeout: ${timeout}
 });
 
-axiosInstance.interceptors.request.use(onRequest);
-axiosInstance.interceptors.response.use(onResponse, onResponseError);
+${
+    !isReact ? (`axiosInstance.interceptors.request.use(onRequest);
+    axiosInstance.interceptors.response.use(onResponse, onResponseError);`):''
+}
 
 export default axiosInstance;
 `;

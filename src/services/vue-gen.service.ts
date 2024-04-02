@@ -213,7 +213,7 @@ export class VueGenService extends BaseService {
       )
       await this.writeFileSync(
         this.output + project + '/apis/@base/base.service.ts',
-        baseService(this.environment, swagger, this.interceptorPath, this.timeout)
+        baseService(this.environment, swagger, this.interceptorPath,false, this.timeout)
       )
       await this.writeFileSync(this.output + project + '/apis/@base/base.dto.ts', baseDto())
     }

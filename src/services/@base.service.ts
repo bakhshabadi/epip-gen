@@ -52,7 +52,9 @@ export class BaseService implements IFramework {
     return `
       public dtoValidation(){
         const ajv = new Ajv();
-        const valid = ajv.validate(${name}.schema, this);
+        const obj= Object.assign({},${name}.schema);
+        delete obj['name']
+        const valid = ajv.validate(obj, this);
         if (!valid) {
           return ajv!.errors!.map(f=>f.message).join('\\n');
         }
@@ -65,7 +67,9 @@ export class BaseService implements IFramework {
     return `
       public validationProperty(key:string){
         const ajv = new Ajv();
-        const validate = ajv.compile(${name}.schema) as any;
+        const obj= Object.assign({},${name}.schema);
+        delete obj['name']
+        const validate = ajv.compile(obj) as any;
         validate(this);
         const error = validate.errors.find((f: any)=>f.params.missingProperty==key)
         if (error){

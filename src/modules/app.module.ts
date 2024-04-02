@@ -11,10 +11,10 @@ import * as Services from '../services';
     Commanders.NgGenCommander,
     Commanders.VueGenCommander,
     Commanders.VersionCommander,
-    // Commanders.ReactGenCommander,
+    Commanders.ReactGenCommander,
     Services.NgGenService,
     Services.VueGenService,
-    // Services.ReactGenService,
+    Services.ReactGenService,
   ],
 })
 export class AppModule {}
