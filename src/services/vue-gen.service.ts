@@ -209,7 +209,7 @@ export class VueGenService extends BaseService {
 
       await this.writeFileSync(
         this.output + project + '/models.ts',
-        `import Ajv from "ajv";\n\n` + models.join('\n')
+        `import Ajv from "ajv";\nimport AjvFormat from "ajv-formats";\n\n` + models.join('\n')
       )
       await this.writeFileSync(
         this.output + project + '/apis/@base/base.service.ts',

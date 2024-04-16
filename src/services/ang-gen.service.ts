@@ -87,7 +87,7 @@ export class NgGenService extends BaseService {
     await fs.writeFileSync(this.output + '/apis/@base/base.dto.ts', baseDto())
     await fs.writeFileSync(
       this.output + '/apis/models.ts',
-      `import Ajv from "ajv";\n\n` + models.join('\n')
+      `import Ajv from "ajv";\nimport AjvFormat from "ajv-formats";\n\n` + models.join('\n')
     )
     console.log('your operation is succeed.')
   }
