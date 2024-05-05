@@ -152,6 +152,11 @@ export class VueGenService extends BaseService {
               }
               api.name = key
               api.method = key1
+              if (api?.bodies?.length) {
+                api?.bodies.forEach((sch) => {
+                  this.schemas.push(Object.assign({ name: `${api.operationId}` }, sch.schema));
+                })
+              }
               this.paths.push(api)
               if(api.parameters && api.parameters.length){
                 let props = {}
