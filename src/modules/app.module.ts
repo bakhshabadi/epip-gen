@@ -1,12 +1,10 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import * as Commanders from '../commanders';
-import * as Services from '../services';
+import { Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
+import * as Commanders from '../commanders'
+import * as Services from '../services'
 
 @Module({
-  imports: [
-    ConfigModule.forRoot(),
-  ],
+  imports: [ConfigModule.forRoot()],
   providers: [
     Commanders.NgGenCommander,
     Commanders.VueGenCommander,
@@ -14,7 +12,7 @@ import * as Services from '../services';
     Commanders.ReactGenCommander,
     Services.NgGenService,
     Services.VueGenService,
-    Services.ReactGenService,
-  ],
+    Services.ReactGenService
+  ]
 })
 export class AppModule {}

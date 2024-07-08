@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-import { AppModule } from './modules/app.module';
-import { CommandFactory } from 'nest-commander';
+import { CommandFactory } from 'nest-commander'
+import { AppModule } from './modules/app.module'
 
 async function bootstrap() {
-  await CommandFactory.run(AppModule);
+  await CommandFactory.run(AppModule)
 }
-bootstrap();
+bootstrap()

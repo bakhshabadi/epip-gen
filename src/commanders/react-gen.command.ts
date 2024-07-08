@@ -1,9 +1,9 @@
-import { Command, CommandRunner, Option } from "nest-commander";
-import { ReactGenService } from "../services/react-gen.service";
+import { Command, CommandRunner, Option } from 'nest-commander'
+import { ReactGenService } from '../services/react-gen.service'
 
 @Command({ name: 'react', description: 'fetch api schema for react' })
 export class ReactGenCommander implements CommandRunner {
-    constructor(private srv: ReactGenService) {}
+  constructor(private srv: ReactGenService) {}
 
   async run(passedParam: string[]): Promise<void> {
     await this.srv.run()

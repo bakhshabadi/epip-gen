@@ -154,19 +154,19 @@ export class VueGenService extends BaseService {
               api.method = key1
               if (api?.bodies?.length) {
                 api?.bodies.forEach((sch) => {
-                  this.schemas.push(Object.assign({ name: `${api.operationId}` }, sch.schema));
+                  this.schemas.push(Object.assign({ name: `${api.operationId}` }, sch.schema))
                 })
               }
               this.paths.push(api)
-              if(api.parameters && api.parameters.length){
+              if (api.parameters && api.parameters.length) {
                 let props = {}
-                const required = [];
-                api.parameters.map(f=>{
-                  props[f.name]=f.schema;
-                  if(f.required){
+                const required = []
+                api.parameters.map((f) => {
+                  props[f.name] = f.schema
+                  if (f.required) {
                     required.push(f.name)
                   }
-                });
+                })
                 // this.schemas.push({
                 //   name: (api.operationId.split('Controller_').length ? api.operationId.split('Controller_')[1]:api.operationId)+'DtoIn',
                 //   properties: props,
@@ -218,7 +218,7 @@ export class VueGenService extends BaseService {
       )
       await this.writeFileSync(
         this.output + project + '/apis/@base/base.service.ts',
-        baseService(this.environment, swagger, this.interceptorPath,false, this.timeout)
+        baseService(this.environment, swagger, this.interceptorPath, false, this.timeout)
       )
       await this.writeFileSync(this.output + project + '/apis/@base/base.dto.ts', baseDto())
     }
@@ -429,9 +429,11 @@ export class VueGenService extends BaseService {
       }
 
       arr.push(
-        `    public static ${__async} ${api.operationId.split('Controller_')[1] || api.operationId} (${params.join(
-          ', '
-        )}${`${params.join(', ').length ? ', ' : ''}options?: AxiosRequestConfig`})${__output} {
+        `    public static ${__async} ${
+          api.operationId.split('Controller_')[1] || api.operationId
+        } (${params.join(', ')}${`${
+          params.join(', ').length ? ', ' : ''
+        }options?: AxiosRequestConfig`})${__output} {
           ${(() => {
             if (this.getPlugin('class-dto') && isBody) {
               return `

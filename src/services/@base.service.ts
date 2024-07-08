@@ -48,7 +48,7 @@ export class BaseService implements IFramework {
     static schema =  ${JSON.stringify(schema)}
     `
   }
-  private createDtoValidation(name:string) {
+  private createDtoValidation(name: string) {
     return `
       public dtoValidation(){
         const ajv = new Ajv();
@@ -64,7 +64,7 @@ export class BaseService implements IFramework {
     `
   }
 
-  private createValidationProperty(name:string) {
+  private createValidationProperty(name: string) {
     return `
       public validationProperty(key:string){
         const ajv = new Ajv();
@@ -293,9 +293,9 @@ ${_(data)
           return f.items.type ? f.schema.items.type + '[]' : 'any[]'
         } else if (f.type == 'integer' || f.type == 'number') {
           return 'number'
-        } else if (f.type == 'string' ) {
+        } else if (f.type == 'string') {
           return 'string'
-        } else if (f.type == 'boolean' ) {
+        } else if (f.type == 'boolean') {
           return 'boolean'
         } else {
           return checkArray(f.schema)

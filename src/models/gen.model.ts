@@ -1,5 +1,5 @@
 export enum FrameworkType {
-    ANGULAR = "ng",
-    VUEJS = "vue",
-    REACT = "react"
+  ANGULAR = 'ng',
+  VUEJS = 'vue',
+  REACT = 'react'
 }
